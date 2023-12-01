@@ -68,7 +68,7 @@ class Day01 : AbstractDay() {
             ).filter { it.first >= 0 }
         }.sortedBy { it.first }.map { it.second }
 
-        return "${numbers.first()}${numbers.last()}".toInt()
+        return numbers.first() * 10 + numbers.last()
     }
 
 
