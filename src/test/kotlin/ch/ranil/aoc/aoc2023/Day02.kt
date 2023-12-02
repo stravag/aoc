@@ -9,7 +9,7 @@ class Day02 : AbstractDay() {
     @Test
     fun part1() {
         assertEquals(8, compute1(testInput))
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(2617, compute1(puzzleInput))
     }
 
     @Test
@@ -39,8 +39,13 @@ class Day02 : AbstractDay() {
     private fun compute1(input: List<String>): Int {
         return input
             .map { it.parseGame() }
-            .filter { (_, possibleSubsets) ->
-                possibleSubsets.isNotEmpty()
+            .filterNot { (_, possibleSubsets) ->
+                possibleSubsets.any { subset ->
+                    subset.any { (count, cube) ->
+                        val exceedsAvailability = availableColours.getValue(cube) < count
+                        exceedsAvailability
+                    }
+                }
             }
             .sumOf { it.first }
     }
