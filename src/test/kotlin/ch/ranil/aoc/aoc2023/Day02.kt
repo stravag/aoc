@@ -2,6 +2,7 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
+import kotlin.math.max
 import kotlin.test.assertEquals
 
 class Day02 : AbstractDay() {
@@ -32,22 +33,45 @@ class Day02 : AbstractDay() {
 
     @Test
     fun part2() {
-        assertEquals(0, compute2(testInput))
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(2286, compute2(testInput))
+        assertEquals(59795, compute2(puzzleInput))
+    }
+
+    @Test
+    fun part2Dummy() {
+        assertEquals(48, "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green".parseGame().second.determinePower())
     }
 
     private fun compute1(input: List<String>): Int {
         return input
             .map { it.parseGame() }
-            .filterNot { (_, possibleSubsets) ->
-                possibleSubsets.any { subset ->
+            .filterNot { (_, subsets) ->
+                subsets.any { subset ->
                     subset.any { (count, cube) ->
-                        val exceedsAvailability = availableColours.getValue(cube) < count
-                        exceedsAvailability
+                        availableColours.getValue(cube) < count
                     }
                 }
             }
             .sumOf { it.first }
+    }
+
+    private fun compute2(input: List<String>): Int {
+        return input
+            .map { it.parseGame() }
+            .sumOf { (_, subsets) ->
+                subsets.determinePower()
+            }
+    }
+
+    private fun List<List<Pair<Int, String>>>.determinePower(): Int {
+        val minPowerMap = mutableMapOf<String, Int>()
+        forEach { subset ->
+            subset.forEach { (count, cube) ->
+                val curVal = minPowerMap[cube] ?: 0
+                minPowerMap[cube] = max(curVal, count)
+            }
+        }
+        return minPowerMap.values.reduce { a, b -> a * b }
     }
 
     private fun String.parseGame(): Pair<Int, List<List<Pair<Int, String>>>> {
@@ -77,13 +101,9 @@ class Day02 : AbstractDay() {
         return countStr.toInt() to cubeStr
     }
 
-    val availableColours = mapOf(
+    private val availableColours = mapOf(
         "red" to 12,
         "green" to 13,
         "blue" to 14,
     )
-
-    private fun compute2(input: List<String>): Int {
-        return input.size
-    }
 }
