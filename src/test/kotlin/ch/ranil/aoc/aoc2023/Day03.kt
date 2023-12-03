@@ -13,197 +13,40 @@ class Day03 : AbstractDay() {
     }
 
     @Test
-    fun part1Alternate() {
-        assertEquals(4361, compute1Alt(testInput))
-        assertEquals(544664, compute1Alt(puzzleInput))
-    }
-
-    @Test
-    fun part1Alternate2() {
-        assertEquals(4361, compute1Alt2(testInput))
-        assertEquals(544664, compute1Alt2(puzzleInput))
-    }
-
-    @Test
-    fun part1AlternateTests() {
-        assertEquals(listOf(123), parseSchematics(".123".lines()).partNumbers.map { it.number })
-        assertEquals(listOf(123), parseSchematics(".123$".lines()).partNumbers.map { it.number })
-        assertEquals(listOf(12, 34), parseSchematics(".12.34.".lines()).partNumbers.map { it.number })
-        assertEquals(listOf(123), parseSchematics("123".lines()).partNumbers.map { it.number })
-        assertEquals(listOf(12, 34), parseSchematics(".12$34.".lines()).partNumbers.map { it.number })
-    }
-
-    @Test
     fun part2() {
         assertEquals(0, compute2(testInput))
         assertEquals(0, compute2(puzzleInput))
     }
 
-    private fun compute1(input: List<String>): Long {
-        val numbers = input.flatMapIndexed { y, line ->
-            line.flatMapIndexed { x, c ->
-                getNumbersForPosition(c, input, Point(x, y))
+    private fun compute1(input: List<String>): Int {
+        val (partNumbers, symbols) = parseSchematics(input)
+        val numbers = partNumbers.filter { (_, partPositions) ->
+            symbols.any { (_, symbolPosition) ->
+                partPositions.any { it.isAdjacentTo(symbolPosition) }
             }
-        }
+        }.map { it.number }
         return numbers.sum()
     }
 
-    private fun compute1Alt(input: List<String>): Int {
-        val schematic = parseSchematics(input)
-        val partNumbers = schematic.partNumbers.filter { (_, partPositions) ->
-            schematic.symbols.any { (_, symbolPosition) ->
-                partPositions.any { it.isAdjacentTo(symbolPosition) }
-            }
-        }
-        return partNumbers.sumOf { it.number }
-    }
-
-    private fun compute1Alt2(input: List<String>): Int {
-        val schematic = parseSchematics2(input)
-        val partNumbers = schematic.partNumbers.filter { (_, partPositions) ->
-            schematic.symbols.any { (_, symbolPosition) ->
-                partPositions.any { it.isAdjacentTo(symbolPosition) }
-            }
-        }
-        return partNumbers.sumOf { it.number }
-    }
-
-    private fun parseSchematics(input: List<String>): Schematic {
-        val schematic = Schematic()
-        input.forEachIndexed { y, line ->
-            line.forEachIndexed { x, char ->
-                val pos = Point(x, y)
-                if (char.isDigit()) {
-                    schematic.trackNumber(char.digitToInt(), pos)
-                } else {
-                    schematic.trackSymbol(char, pos)
-                    schematic.completeNumber()
-                }
-            }
-            schematic.completeNumber()
-        }
-        return schematic
-    }
-
-    private fun parseSchematics2(input: List<String>): Schematic {
-        val schematic = Schematic()
+    private fun parseSchematics(input: List<String>): Pair<List<PartNumber>, List<Symbol>> {
+        val partNumbers = mutableListOf<PartNumber>()
+        val symbols = mutableListOf<Symbol>()
         input.forEachIndexed { y, line ->
             Regex("[0-9]+|[^0-9.]").findAll(line).forEach { r ->
                 r.groups.filterNotNull().forEach { g ->
                     if (g.value.first().isDigit()) {
                         val positionsOfDigit = g.range.map { x -> Point(x, y) }
-                        schematic.partNumbers.add(PartNumber(g.value.toInt(), positionsOfDigit))
+                        partNumbers.add(PartNumber(g.value.toInt(), positionsOfDigit))
                     } else
-                        schematic.symbols.add(Symbol(g.value.single(), Point(g.range.first, y)))
+                        symbols.add(Symbol(g.value.single(), Point(g.range.first, y)))
                 }
             }
         }
-        return schematic
-    }
-
-    private fun getNumbersForPosition(
-        c: Char,
-        input: List<String>,
-        pos: Point,
-    ) = when {
-        c.isDigit() || c == '.' -> emptyList()
-        else -> findNumberForSymbol(input, pos)
-    }
-
-    private fun findNumberForSymbol(input: List<String>, point: Point): List<Long> {
-        val topRow = input.getOrNull(point.y - 1).orEmpty()
-        val currRow = input.getOrNull(point.y).orEmpty()
-        val bottomRow = input.getOrNull(point.y + 1).orEmpty()
-
-        var topNums = listOfNotNull(searchNumberInStringAtPos(topRow, point.x, Direction.BOTH))
-        // if nothing straight above, check diagonal
-        if (topNums.isEmpty()) {
-            topNums = listOfNotNull(
-                searchNumberInStringAtPos(topRow, point.x, Direction.LEFT),
-                searchNumberInStringAtPos(topRow, point.x, Direction.RIGHT),
-            )
-        }
-
-        var bottomNums = listOfNotNull(searchNumberInStringAtPos(bottomRow, point.x, Direction.BOTH))
-        // if nothing straight below, check diagonal
-        if (bottomNums.isEmpty()) {
-            bottomNums = listOfNotNull(
-                searchNumberInStringAtPos(bottomRow, point.x, Direction.LEFT),
-                searchNumberInStringAtPos(bottomRow, point.x, Direction.RIGHT),
-            )
-        }
-
-        val inlineNums = listOfNotNull(
-            // top row
-            searchNumberInStringAtPos(currRow, point.x, Direction.LEFT),
-            searchNumberInStringAtPos(currRow, point.x, Direction.RIGHT),
-        )
-        return topNums + inlineNums + bottomNums
-    }
-
-    private fun searchNumberInStringAtPos(string: String, idx: Int, direction: Direction): Long? {
-        fun find(range: IntProgression, combination: (String, Char) -> String): Long? {
-            var numberStr: String? = null
-            for (x in range) {
-                val char = string.getOrNull(x)
-                if (char != null && char.isDigit()) {
-                    numberStr = combination(numberStr.orEmpty(), char)
-                } else {
-                    break
-                }
-            }
-            return numberStr?.toLong()
-        }
-
-        return when (direction) {
-            Direction.LEFT -> find((0..<idx).reversed()) { s, c -> "$c$s" }
-            Direction.RIGHT -> find(idx + 1..<string.length) { s, c -> "$s$c" }
-            Direction.BOTH -> {
-                val left = find((0..idx).reversed()) { s, c -> "$c$s" }
-                // if we don't find anything at position idx, abort, diagonal covered differently
-                if (left != null) {
-                    val right = find(idx + 1..<string.length) { s, c -> "$s$c" }
-                    "$left${right ?: ""}".toLongOrNull()
-                } else {
-                    null
-                }
-            }
-        }
-    }
-
-    enum class Direction {
-        LEFT, RIGHT, BOTH
+        return partNumbers to symbols
     }
 
     private fun compute2(input: List<String>): Int {
         return input.size
-    }
-
-    class Schematic {
-        val partNumbers: MutableList<PartNumber> = mutableListOf()
-        val symbols: MutableList<Symbol> = mutableListOf()
-
-        private var positions: List<Point> = emptyList()
-        private var number: Int = 0
-
-        fun trackSymbol(symbol: Char, pos: Point) {
-            symbols.add(Symbol(symbol, pos))
-        }
-
-        fun trackNumber(digit: Int, pos: Point) {
-            number = number * 10 + digit
-            positions += pos
-        }
-
-        fun completeNumber() {
-            if (positions.isNotEmpty()) {
-                partNumbers.add(
-                    PartNumber(number, positions)
-                )
-                number = 0
-                positions = emptyList()
-            }
-        }
     }
 
     data class PartNumber(
