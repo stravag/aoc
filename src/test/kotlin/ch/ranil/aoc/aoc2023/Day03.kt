@@ -9,13 +9,19 @@ class Day03 : AbstractDay() {
     @Test
     fun part1() {
         assertEquals(4361, compute1(testInput))
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(544664, compute1(puzzleInput))
     }
 
     @Test
     fun part1Alternate() {
         assertEquals(4361, compute1Alt(testInput))
-        assertEquals(0, compute1Alt(puzzleInput))
+        assertEquals(544664, compute1Alt(puzzleInput))
+    }
+
+    @Test
+    fun part1Alternate2() {
+        assertEquals(4361, compute1Alt2(testInput))
+        assertEquals(544664, compute1Alt2(puzzleInput))
     }
 
     @Test
@@ -24,6 +30,7 @@ class Day03 : AbstractDay() {
         assertEquals(listOf(123), parseSchematics(".123$".lines()).partNumbers.map { it.number })
         assertEquals(listOf(12, 34), parseSchematics(".12.34.".lines()).partNumbers.map { it.number })
         assertEquals(listOf(123), parseSchematics("123".lines()).partNumbers.map { it.number })
+        assertEquals(listOf(12, 34), parseSchematics(".12$34.".lines()).partNumbers.map { it.number })
     }
 
     @Test
@@ -51,6 +58,16 @@ class Day03 : AbstractDay() {
         return partNumbers.sumOf { it.number }
     }
 
+    private fun compute1Alt2(input: List<String>): Int {
+        val schematic = parseSchematics2(input)
+        val partNumbers = schematic.partNumbers.filter { (_, partPositions) ->
+            schematic.symbols.any { (_, symbolPosition) ->
+                partPositions.any { it.isAdjacentTo(symbolPosition) }
+            }
+        }
+        return partNumbers.sumOf { it.number }
+    }
+
     private fun parseSchematics(input: List<String>): Schematic {
         val schematic = Schematic()
         input.forEachIndexed { y, line ->
@@ -58,13 +75,28 @@ class Day03 : AbstractDay() {
                 val pos = Point(x, y)
                 if (char.isDigit()) {
                     schematic.trackNumber(char.digitToInt(), pos)
-                } else if (char == '.') {
-                    schematic.completeNumber()
                 } else {
                     schematic.trackSymbol(char, pos)
+                    schematic.completeNumber()
                 }
             }
             schematic.completeNumber()
+        }
+        return schematic
+    }
+
+    private fun parseSchematics2(input: List<String>): Schematic {
+        val schematic = Schematic()
+        input.forEachIndexed { y, line ->
+            Regex("[0-9]+|[^0-9.]").findAll(line).forEach { r ->
+                r.groups.filterNotNull().forEach { g ->
+                    if (g.value.first().isDigit()) {
+                        val positionsOfDigit = g.range.map { x -> Point(x, y) }
+                        schematic.partNumbers.add(PartNumber(g.value.toInt(), positionsOfDigit))
+                    } else
+                        schematic.symbols.add(Symbol(g.value.single(), Point(g.range.first, y)))
+                }
+            }
         }
         return schematic
     }
