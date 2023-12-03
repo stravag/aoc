@@ -19,6 +19,14 @@ class Day03 : AbstractDay() {
     }
 
     @Test
+    fun part1AlternateTests() {
+        assertEquals(listOf(123), parseSchematics(".123".lines()).partNumbers.map { it.number })
+        assertEquals(listOf(123), parseSchematics(".123$".lines()).partNumbers.map { it.number })
+        assertEquals(listOf(12, 34), parseSchematics(".12.34.".lines()).partNumbers.map { it.number })
+        assertEquals(listOf(123), parseSchematics("123".lines()).partNumbers.map { it.number })
+    }
+
+    @Test
     fun part2() {
         assertEquals(0, compute2(testInput))
         assertEquals(0, compute2(puzzleInput))
@@ -56,6 +64,7 @@ class Day03 : AbstractDay() {
                     schematic.trackSymbol(char, pos)
                 }
             }
+            schematic.completeNumber()
         }
         return schematic
     }
@@ -150,8 +159,8 @@ class Day03 : AbstractDay() {
         }
 
         fun trackNumber(digit: Int, pos: Point) {
-            this.number = this.number * 10 + digit
-            this.positions += pos
+            number = number * 10 + digit
+            positions += pos
         }
 
         fun completeNumber() {
