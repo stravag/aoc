@@ -13,52 +13,9 @@ class Day03 : AbstractDay() {
     }
 
     @Test
-    fun part1Dummy() {
-        assertEquals(null, searchNumberInStringAtPos(".123.*...", 5, Direction.LEFT))
-        assertEquals(123, searchNumberInStringAtPos(".123*...", 4, Direction.LEFT))
-
-        assertEquals(null, searchNumberInStringAtPos(".*.123..", 1, Direction.RIGHT))
-        assertEquals(123, searchNumberInStringAtPos(".*123..", 1, Direction.RIGHT))
-
-        assertEquals(null, searchNumberInStringAtPos(".123.", 0, Direction.BOTH))
-        assertEquals(123, searchNumberInStringAtPos(".123.", 1, Direction.BOTH))
-        assertEquals(123, searchNumberInStringAtPos(".123.", 2, Direction.BOTH))
-        assertEquals(123, searchNumberInStringAtPos(".123.", 3, Direction.BOTH))
-        assertEquals(null, searchNumberInStringAtPos(".123.", 4, Direction.BOTH))
-    }
-
-    @Test
-    fun part1Dummy2() {
-        assertEquals(
-            1 + 2, compute1(
-                """
-                .....1.....
-                ...3.%.1...
-                .....2.....
-            """.trimIndent().lines()
-            )
-        )
-
-        assertEquals(
-            382 + 450 + 988 + 852, compute1(
-                """
-                .....%........
-                .382.450..@...
-                ...*.......988
-                852...612.....
-            """.trimIndent().lines()
-            )
-        )
-
-        assertEquals(
-            535 + 848, compute1(
-                """
-                ...../.
-                ...*...
-                535.848
-            """.trimIndent().lines()
-            )
-        )
+    fun part1Alternate() {
+        assertEquals(4361, compute1Alt(testInput))
+        assertEquals(0, compute1Alt(puzzleInput))
     }
 
     @Test
@@ -74,6 +31,33 @@ class Day03 : AbstractDay() {
             }
         }
         return numbers.sum()
+    }
+
+    private fun compute1Alt(input: List<String>): Int {
+        val schematic = parseSchematics(input)
+        val partNumbers = schematic.partNumbers.filter { (_, partPositions) ->
+            schematic.symbols.any { (_, symbolPosition) ->
+                partPositions.any { it.isAdjacentTo(symbolPosition) }
+            }
+        }
+        return partNumbers.sumOf { it.number }
+    }
+
+    private fun parseSchematics(input: List<String>): Schematic {
+        val schematic = Schematic()
+        input.forEachIndexed { y, line ->
+            line.forEachIndexed { x, char ->
+                val pos = Point(x, y)
+                if (char.isDigit()) {
+                    schematic.trackNumber(char.digitToInt(), pos)
+                } else if (char == '.') {
+                    schematic.completeNumber()
+                } else {
+                    schematic.trackSymbol(char, pos)
+                }
+            }
+        }
+        return schematic
     }
 
     private fun getNumbersForPosition(
@@ -153,4 +137,41 @@ class Day03 : AbstractDay() {
     private fun compute2(input: List<String>): Int {
         return input.size
     }
+
+    class Schematic {
+        val partNumbers: MutableList<PartNumber> = mutableListOf()
+        val symbols: MutableList<Symbol> = mutableListOf()
+
+        private var positions: List<Point> = emptyList()
+        private var number: Int = 0
+
+        fun trackSymbol(symbol: Char, pos: Point) {
+            symbols.add(Symbol(symbol, pos))
+        }
+
+        fun trackNumber(digit: Int, pos: Point) {
+            this.number = this.number * 10 + digit
+            this.positions += pos
+        }
+
+        fun completeNumber() {
+            if (positions.isNotEmpty()) {
+                partNumbers.add(
+                    PartNumber(number, positions)
+                )
+                number = 0
+                positions = emptyList()
+            }
+        }
+    }
+
+    data class PartNumber(
+        val number: Int,
+        val positions: List<Point>,
+    )
+
+    data class Symbol(
+        val char: Char,
+        val position: Point,
+    )
 }
