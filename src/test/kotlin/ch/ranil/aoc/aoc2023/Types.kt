@@ -1,6 +1,9 @@
 package ch.ranil.aoc.aoc2023
 
+import org.junit.jupiter.api.Test
 import kotlin.math.abs
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 data class Point(val x: Int, val y: Int)
 
@@ -22,4 +25,17 @@ fun Point.edges(): List<Point> {
         Point(x, y + 1),
         Point(x + 1, y + 1),
     )
+}
+
+class PointTest {
+    @Test
+    fun testEdgesAndAdjacent() {
+        val center = Point(0, 0)
+        assertTrue(center.edges().all { edge -> edge.isAdjacentTo(center) })
+    }
+
+    @Test
+    fun testEdgesUnique() {
+        assertEquals(8, Point(0, 0).edges().distinct().size)
+    }
 }
