@@ -28,6 +28,16 @@ class Day03 : AbstractDay() {
     }
 
     @Test
+    fun part1Dummy2() {
+        val trimIndent = """
+            ...../.
+            ...*...
+            535.848
+        """.trimIndent().lines()
+        assertEquals(535+848, compute1(trimIndent))
+    }
+
+    @Test
     fun part2() {
         assertEquals(0, compute2(testInput))
         assertEquals(0, compute2(puzzleInput))
@@ -85,8 +95,8 @@ class Day03 : AbstractDay() {
         fun find(range: IntProgression, combination: (String, Char) -> String): Long? {
             var numberStr: String? = null
             for (x in range) {
-                val char = string[x]
-                if (char.isDigit()) {
+                val char = string.getOrNull(x)
+                if (char != null && char.isDigit()) {
                     numberStr = combination(numberStr.orEmpty(), char)
                 } else {
                     break
