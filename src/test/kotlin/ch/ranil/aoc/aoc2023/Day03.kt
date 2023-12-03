@@ -14,8 +14,8 @@ class Day03 : AbstractDay() {
 
     @Test
     fun part2() {
-        assertEquals(0, compute2(testInput))
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(467835, compute2(testInput))
+        assertEquals(84495585, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -28,6 +28,28 @@ class Day03 : AbstractDay() {
         return numbers.sum()
     }
 
+    private fun compute2(input: List<String>): Int {
+        val (partNumbers, symbols) = parseSchematics(input)
+        val partNumberLookup = partNumbers.flatMap { partNumber ->
+            partNumber.positions.map { pos -> pos to partNumber }
+        }.toMap()
+
+        val ratios = symbols
+            .filter { it.char == '*' }
+            .mapNotNull { symbol ->
+                val numbersForSymbol = symbol.position
+                    .edges()
+                    .mapNotNull { partNumberLookup[it] }
+                    .distinct()
+                if (numbersForSymbol.size == 2) {
+                    numbersForSymbol.fold(1) { acc, partNumber -> acc * partNumber.number }
+                } else {
+                    null
+                }
+            }
+        return ratios.sum()
+    }
+
     private fun parseSchematics(input: List<String>): Pair<List<PartNumber>, List<Symbol>> {
         val partNumbers = mutableListOf<PartNumber>()
         val symbols = mutableListOf<Symbol>()
@@ -35,18 +57,16 @@ class Day03 : AbstractDay() {
             Regex("[0-9]+|[^0-9.]").findAll(line).forEach { r ->
                 r.groups.filterNotNull().forEach { g ->
                     if (g.value.first().isDigit()) {
-                        val positionsOfDigit = g.range.map { x -> Point(x, y) }
-                        partNumbers.add(PartNumber(g.value.toInt(), positionsOfDigit))
-                    } else
-                        symbols.add(Symbol(g.value.single(), Point(g.range.first, y)))
+                        val positionsOfNum = g.range.map { x -> Point(x, y) }
+                        partNumbers.add(PartNumber(g.value.toInt(), positionsOfNum))
+                    } else {
+                        val positionOfSymbol = Point(g.range.first, y)
+                        symbols.add(Symbol(g.value.single(), positionOfSymbol))
+                    }
                 }
             }
         }
         return partNumbers to symbols
-    }
-
-    private fun compute2(input: List<String>): Int {
-        return input.size
     }
 
     data class PartNumber(
