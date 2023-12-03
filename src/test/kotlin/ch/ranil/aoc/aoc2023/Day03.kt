@@ -8,7 +8,7 @@ class Day03 : AbstractDay() {
 
     @Test
     fun part1() {
-        assertEquals(0, compute1(testInput))
+        assertEquals(4361, compute1(testInput))
         assertEquals(0, compute1(puzzleInput))
     }
 
@@ -33,16 +33,56 @@ class Day03 : AbstractDay() {
         assertEquals(0, compute2(puzzleInput))
     }
 
-    private fun compute1(input: List<String>): Int {
-
-        return input.size
+    private fun compute1(input: List<String>): Long {
+        val numbers = input
+            .flatMapIndexed { y, line ->
+                line.flatMapIndexed { x, c ->
+                    getNumbersForPosition(c, input, Point(x, y))
+                }
+            }
+        return numbers.sum()
     }
 
-    private fun findNumberForSymbol(input: List<String>, point: Point) {
+    private fun getNumbersForPosition(
+        c: Char,
+        input: List<String>,
+        pos: Point,
+    ) = when {
+        c.isDigit() || c == '.' -> emptyList()
+        else -> findNumberForSymbol(input, pos)
     }
 
-    private fun searchNumberInStringAtPos(string: String, idx: Int, direction: Direction): Int? {
-        fun find(range: IntProgression, combination: (String, Char) -> String): Int? {
+    private fun findNumberForSymbol(input: List<String>, point: Point): List<Long> {
+        val topRow = input.getOrNull(point.y - 1).orEmpty()
+        val currRow = input.getOrNull(point.y).orEmpty()
+        val bottomRow = input.getOrNull(point.y + 1).orEmpty()
+
+        var topNums = listOfNotNull(searchNumberInStringAtPos(topRow, point.x, Direction.BOTH))
+        if (topNums.isEmpty()) {
+            topNums = listOfNotNull(
+                searchNumberInStringAtPos(topRow, point.x, Direction.LEFT),
+                searchNumberInStringAtPos(topRow, point.x, Direction.RIGHT),
+            )
+        }
+
+        var bottomNums = listOfNotNull(searchNumberInStringAtPos(bottomRow, point.x, Direction.BOTH))
+        if (bottomNums.isEmpty()) {
+            bottomNums = listOfNotNull(
+                searchNumberInStringAtPos(bottomRow, point.x, Direction.LEFT),
+                searchNumberInStringAtPos(bottomRow, point.x, Direction.RIGHT),
+            )
+        }
+
+        val inlineNums = listOfNotNull(
+            // top row
+            searchNumberInStringAtPos(currRow, point.x, Direction.LEFT),
+            searchNumberInStringAtPos(currRow, point.x, Direction.RIGHT),
+        )
+        return topNums + inlineNums + bottomNums
+    }
+
+    private fun searchNumberInStringAtPos(string: String, idx: Int, direction: Direction): Long? {
+        fun find(range: IntProgression, combination: (String, Char) -> String): Long? {
             var numberStr: String? = null
             for (x in range) {
                 val char = string[x]
@@ -52,7 +92,7 @@ class Day03 : AbstractDay() {
                     break
                 }
             }
-            return numberStr?.toInt()
+            return numberStr?.toLong()
         }
 
         return when (direction) {
@@ -62,7 +102,7 @@ class Day03 : AbstractDay() {
                 val left = find((0..idx).reversed()) { s, c -> "$c$s" }
                 if (left != null) {
                     val right = find(idx + 1..<string.length) { s, c -> "$s$c" }
-                    "$left${right ?: ""}".toIntOrNull()
+                    "$left${right ?: ""}".toLongOrNull()
                 } else {
                     null
                 }
