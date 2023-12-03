@@ -29,12 +29,26 @@ class Day03 : AbstractDay() {
 
     @Test
     fun part1Dummy2() {
-        val trimIndent = """
-            ...../.
-            ...*...
-            535.848
-        """.trimIndent().lines()
-        assertEquals(535+848, compute1(trimIndent))
+        assertEquals(
+            382 + 450 + 988 + 852, compute1(
+                """
+                .....%........
+                .382.450..@...
+                ...*.......988
+                852...612.....
+            """.trimIndent().lines()
+            )
+        )
+
+        assertEquals(
+            535 + 848, compute1(
+                """
+                ...../.
+                ...*...
+                535.848
+            """.trimIndent().lines()
+            )
+        )
     }
 
     @Test
@@ -44,8 +58,7 @@ class Day03 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        val numbers = input
-            .flatMapIndexed { y, line ->
+        val numbers = input.flatMapIndexed { y, line ->
                 line.flatMapIndexed { x, c ->
                     getNumbersForPosition(c, input, Point(x, y))
                 }
