@@ -30,6 +30,16 @@ class Day03 : AbstractDay() {
     @Test
     fun part1Dummy2() {
         assertEquals(
+            1 + 2, compute1(
+                """
+                .....1.....
+                ...3.%.1...
+                .....2.....
+            """.trimIndent().lines()
+            )
+        )
+
+        assertEquals(
             382 + 450 + 988 + 852, compute1(
                 """
                 .....%........
@@ -59,10 +69,10 @@ class Day03 : AbstractDay() {
 
     private fun compute1(input: List<String>): Long {
         val numbers = input.flatMapIndexed { y, line ->
-                line.flatMapIndexed { x, c ->
-                    getNumbersForPosition(c, input, Point(x, y))
-                }
+            line.flatMapIndexed { x, c ->
+                getNumbersForPosition(c, input, Point(x, y))
             }
+        }
         return numbers.sum()
     }
 
@@ -81,6 +91,7 @@ class Day03 : AbstractDay() {
         val bottomRow = input.getOrNull(point.y + 1).orEmpty()
 
         var topNums = listOfNotNull(searchNumberInStringAtPos(topRow, point.x, Direction.BOTH))
+        // if nothing straight above, check diagonal
         if (topNums.isEmpty()) {
             topNums = listOfNotNull(
                 searchNumberInStringAtPos(topRow, point.x, Direction.LEFT),
@@ -89,6 +100,7 @@ class Day03 : AbstractDay() {
         }
 
         var bottomNums = listOfNotNull(searchNumberInStringAtPos(bottomRow, point.x, Direction.BOTH))
+        // if nothing straight below, check diagonal
         if (bottomNums.isEmpty()) {
             bottomNums = listOfNotNull(
                 searchNumberInStringAtPos(bottomRow, point.x, Direction.LEFT),
@@ -123,6 +135,7 @@ class Day03 : AbstractDay() {
             Direction.RIGHT -> find(idx + 1..<string.length) { s, c -> "$s$c" }
             Direction.BOTH -> {
                 val left = find((0..idx).reversed()) { s, c -> "$c$s" }
+                // if we don't find anything at position idx, abort, diagonal covered differently
                 if (left != null) {
                     val right = find(idx + 1..<string.length) { s, c -> "$s$c" }
                     "$left${right ?: ""}".toLongOrNull()
