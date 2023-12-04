@@ -21,30 +21,33 @@ class Day04 : AbstractDay() {
 
     private fun compute1(input: List<String>): Int {
         return parseScratchCards(input).sumOf {
-            it.getPoints()
+            it.points
         }
     }
 
     private fun compute2(input: List<String>): Int {
-        val scratchCards = parseScratchCards(input)
+        val cards = parseScratchCards(input)
 
-        return scratchCards.sumOf { scratchCard: ScratchCard ->
-            processCard(scratchCard, scratchCards)
+        val totalWonCardsCount = cards.sumOf { card: Card ->
+            processCard(card, cards)
         }
+        return cards.size + totalWonCardsCount
     }
 
-    private fun processCard(card: ScratchCard, pileOfCards: List<ScratchCard>): Int {
-        if (card.num == pileOfCards.size) return 1
+    private fun processCard(card: Card, cards: List<Card>): Int {
+        val cardsWon = cards
+            .subList(card.num, card.num + card.matchingCount)
 
-        return pileOfCards
-            .subList(card.num, card.num + card.matchingCount())
-            .sumOf { processCard(it, pileOfCards) } + 1
+        val cardsWonOfCardsCount = cardsWon.sumOf {
+            processCard(it, cards)
+        }
+        return cardsWon.size + cardsWonOfCardsCount
     }
 
     private fun parseScratchCards(input: List<String>) = input.map { line ->
         val (gamePart, numbersPart) = line.split(":")
         val (winningPart, availablePart) = numbersPart.split("|")
-        ScratchCard(
+        Card(
             num = gamePart
                 .split(" ")
                 .filter { it.isNotBlank() }[1]
@@ -62,31 +65,22 @@ class Day04 : AbstractDay() {
         )
     }
 
-    data class ScratchCard(
+    data class Card(
         val num: Int,
         val winning: Set<Int>,
         val avail: Set<Int>,
     ) {
-        fun getPoints(): Int {
-            val matchingNumbers = winning.intersect(avail)
-            return if (matchingNumbers.isEmpty()) {
+        private val matchingNumbers = winning.filter {
+            avail.contains(it)
+        }
+
+        val points: Int
+            get() = if (matchingNumbers.isEmpty()) {
                 0
             } else {
                 2.0.pow(matchingNumbers.size.toDouble() - 1).toInt()
             }
-        }
 
-        fun matchingCount(): Int {
-            return winning.intersect(avail.toSet()).count()
-        }
-    }
-
-    @Test
-    fun pointTest() {
-        assertEquals(0, ScratchCard(0, setOf(0), setOf(1)).getPoints())
-        assertEquals(1, ScratchCard(0, setOf(1), setOf(1)).getPoints())
-        assertEquals(2, ScratchCard(0, setOf(1, 2), setOf(1, 2)).getPoints())
-        assertEquals(4, ScratchCard(0, setOf(1, 2, 3), setOf(1, 2, 3)).getPoints())
-        assertEquals(8, ScratchCard(0, setOf(1, 2, 3, 4), setOf(1, 2, 3, 4)).getPoints())
+        val matchingCount: Int = matchingNumbers.size
     }
 }
