@@ -28,21 +28,17 @@ class Day04 : AbstractDay() {
     private fun compute2(input: List<String>): Int {
         val scratchCards = parseScratchCards(input)
 
-        val cards = scratchCards.flatMap { scratchCard: ScratchCard ->
-            val processCard = processCard(scratchCard, scratchCards)
-            processCard
-        }.sortedBy { it.num }
-        return (scratchCards + cards).size
+        return scratchCards.sumOf { scratchCard: ScratchCard ->
+            processCard(scratchCard, scratchCards)
+        }
     }
 
-    private fun processCard(card: ScratchCard, pileOfCards: List<ScratchCard>): List<ScratchCard> {
-        val cardsWon = pileOfCards
-            .subList(card.num, card.num + card.matchingCount())
+    private fun processCard(card: ScratchCard, pileOfCards: List<ScratchCard>): Int {
+        if (card.num == pileOfCards.size) return 1
 
-        val cardsWonOfCards = cardsWon.flatMap {
-            processCard(it, pileOfCards)
-        }
-        return cardsWon + cardsWonOfCards
+        return pileOfCards
+            .subList(card.num, card.num + card.matchingCount())
+            .sumOf { processCard(it, pileOfCards) } + 1
     }
 
     private fun parseScratchCards(input: List<String>) = input.map { line ->
