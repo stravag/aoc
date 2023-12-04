@@ -15,58 +15,82 @@ class Day04 : AbstractDay() {
 
     @Test
     fun part2() {
-        assertEquals(0, compute2(testInput))
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(30, compute2(testInput))
+        assertEquals(9997537, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
-        return input.map { line ->
-            val (gamePart, numbersPart) = line.split(":")
-            val (winningPart, availablePart) = numbersPart.split("|")
-            ScratchCard(
-                num = gamePart
-                    .split(" ")
-                    .filter { it.isNotBlank() }[1]
-                    .toInt(),
-                winning = winningPart
-                    .split(" ")
-                    .filter { it.isNotBlank() }
-                    .map { it.toInt() },
-                avail = availablePart
-                    .split(" ")
-                    .filter { it.isNotBlank() }
-                    .map { it.toInt() },
-            )
-        }.sumOf {
+        return parseScratchCards(input).sumOf {
             it.getPoints()
         }
     }
 
     private fun compute2(input: List<String>): Int {
-        return input.size
+        val scratchCards = parseScratchCards(input)
+
+        val cards = scratchCards.flatMap { scratchCard: ScratchCard ->
+            val processCard = processCard(scratchCard, scratchCards)
+            processCard
+        }.sortedBy { it.num }
+        return (scratchCards + cards).size
+    }
+
+    private fun processCard(card: ScratchCard, pileOfCards: List<ScratchCard>): List<ScratchCard> {
+        val cardsWon = pileOfCards
+            .subList(card.num, card.num + card.matchingCount())
+
+        val cardsWonOfCards = cardsWon.flatMap {
+            processCard(it, pileOfCards)
+        }
+        return cardsWon + cardsWonOfCards
+    }
+
+    private fun parseScratchCards(input: List<String>) = input.map { line ->
+        val (gamePart, numbersPart) = line.split(":")
+        val (winningPart, availablePart) = numbersPart.split("|")
+        ScratchCard(
+            num = gamePart
+                .split(" ")
+                .filter { it.isNotBlank() }[1]
+                .toInt(),
+            winning = winningPart
+                .split(" ")
+                .filter { it.isNotBlank() }
+                .map { it.toInt() }
+                .toSet(),
+            avail = availablePart
+                .split(" ")
+                .filter { it.isNotBlank() }
+                .map { it.toInt() }
+                .toSet(),
+        )
     }
 
     data class ScratchCard(
         val num: Int,
-        val winning: List<Int>,
-        val avail: List<Int>,
+        val winning: Set<Int>,
+        val avail: Set<Int>,
     ) {
         fun getPoints(): Int {
-            val matchingNumbers = winning.intersect(avail.toSet())
+            val matchingNumbers = winning.intersect(avail)
             return if (matchingNumbers.isEmpty()) {
                 0
             } else {
                 2.0.pow(matchingNumbers.size.toDouble() - 1).toInt()
             }
         }
+
+        fun matchingCount(): Int {
+            return winning.intersect(avail.toSet()).count()
+        }
     }
 
     @Test
     fun pointTest() {
-        assertEquals(0, ScratchCard(0, listOf(0), listOf(1)).getPoints())
-        assertEquals(1, ScratchCard(0, listOf(1), listOf(1)).getPoints())
-        assertEquals(2, ScratchCard(0, listOf(1, 2), listOf(1, 2)).getPoints())
-        assertEquals(4, ScratchCard(0, listOf(1, 2, 3), listOf(1, 2, 3)).getPoints())
-        assertEquals(8, ScratchCard(0, listOf(1, 2, 3, 4), listOf(1, 2, 3, 4)).getPoints())
+        assertEquals(0, ScratchCard(0, setOf(0), setOf(1)).getPoints())
+        assertEquals(1, ScratchCard(0, setOf(1), setOf(1)).getPoints())
+        assertEquals(2, ScratchCard(0, setOf(1, 2), setOf(1, 2)).getPoints())
+        assertEquals(4, ScratchCard(0, setOf(1, 2, 3), setOf(1, 2, 3)).getPoints())
+        assertEquals(8, ScratchCard(0, setOf(1, 2, 3, 4), setOf(1, 2, 3, 4)).getPoints())
     }
 }
