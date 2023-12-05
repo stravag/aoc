@@ -42,6 +42,17 @@ class Day05 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
+        val (seedRangesRaw, maps) = parseInput(input)
+        val seedRanges = seedRangesRaw
+            .map { it.value }
+            .windowed(2, 2) { (from, range) ->
+                from..(from + range)
+            }
+
+        val range1 = 0L..1123123123123L
+        val range2 = 1123123123L..2123123123123L
+
+        val intersect = range1.intersect(range2)
         return input.size.toLong()
     }
 
@@ -102,6 +113,5 @@ class Day05 : AbstractDay() {
             )
         }
     }
-
 
 }
