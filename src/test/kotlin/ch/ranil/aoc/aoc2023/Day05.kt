@@ -24,7 +24,7 @@ class Day05 : AbstractDay() {
         var minLocationValue = Long.MAX_VALUE
 
         for (seed in seeds) {
-            var nextElement = seed
+            var nextElement = Element("seed", seed)
             while (nextElement.type != "location") {
                 val map = maps.getValue(nextElement.type)
                 var mapped: Element? = null
@@ -44,21 +44,21 @@ class Day05 : AbstractDay() {
 
     private fun compute2(input: List<String>): Long {
         val (seedRangesRaw, maps) = parseInput(input)
-        val seedRanges = seedRangesRaw
-            .map { it.value }
-            .windowed(2, 2) { (from, range) -> from..(from + range) }
-            .forEach {
-                it
-            }
+        /*
+        return seedRangesRaw
+            .chunked(1000) { (from, range) ->
+                minLocationValueForSeeds(from, from + range, maps)
+            }.min()
 
-        return input.size.toLong()
+         */
+        return 0
     }
 
-    private fun parseInput(input: List<String>): Pair<List<Element>, Map<String, List<Pair<LongRange, Pair<Long, String>>>>> {
+    private fun parseInput(input: List<String>): Pair<List<Long>, Map<String, List<Pair<LongRange, Pair<Long, String>>>>> {
         val seeds = input.first()
             .split(" ")
             .drop(1)
-            .map { Element("seed", it.toLong()) }
+            .map { it.toLong() }
 
         mutableMapOf<Pair<String, String>, List<LongRange>>()
 
