@@ -16,14 +16,24 @@ class Day05 : AbstractDay() {
     @Test
     fun part2() {
         assertEquals(46, compute2(testInput))
-        assertEquals(0, compute2(puzzleInput))
+        //assertEquals(0, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
         val (seeds, maps) = parseInput(input)
+        return seeds.minOf {
+            minLocationValue(it, it, maps)
+        }
+    }
+
+    private fun minLocationValue(
+        seedStart: Long,
+        seedEnd: Long,
+        maps: Map<String, List<Pair<LongRange, Pair<Long, String>>>>,
+    ): Long {
         var minLocationValue = Long.MAX_VALUE
 
-        for (seed in seeds) {
+        for (seed in seedStart..seedEnd) {
             var nextElement = Element("seed", seed)
             while (nextElement.type != "location") {
                 val map = maps.getValue(nextElement.type)
@@ -44,14 +54,11 @@ class Day05 : AbstractDay() {
 
     private fun compute2(input: List<String>): Long {
         val (seedRangesRaw, maps) = parseInput(input)
-        /*
         return seedRangesRaw
-            .chunked(1000) { (from, range) ->
-                minLocationValueForSeeds(from, from + range, maps)
-            }.min()
-
-         */
-        return 0
+            .chunked(2) { (from, range) -> from to range }
+            .minOf { (from, range) ->
+                minLocationValue(from, from + range, maps)
+            }
     }
 
     private fun parseInput(input: List<String>): Pair<List<Long>, Map<String, List<Pair<LongRange, Pair<Long, String>>>>> {
