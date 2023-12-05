@@ -2,6 +2,7 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
+import kotlin.math.min
 import kotlin.test.assertEquals
 
 class Day05 : AbstractDay() {
@@ -20,39 +21,36 @@ class Day05 : AbstractDay() {
 
     private fun compute1(input: List<String>): Long {
         val (seeds, maps) = parseInput(input)
-        val seedValues = seeds.toMutableList()
+        var minLocationValue = Long.MAX_VALUE
 
-        seeds.forEachIndexed { index, element ->
-            var seed = element
-            while (seed.type != "location") {
-                val map = maps.getValue(seed.type)
+        for (seed in seeds) {
+            var nextElement = seed
+            while (nextElement.type != "location") {
+                val map = maps.getValue(nextElement.type)
                 var mapped: Element? = null
-                map.forEach { (range, mapping) ->
+                for ((range, mapping) in map) {
                     val (delta, dstType) = mapping
-                    if (range.contains(seed.value)) {
-                        mapped = Element(dstType, seed.value + delta)
-                        return@forEach
+                    if (range.contains(nextElement.value)) {
+                        mapped = Element(dstType, nextElement.value + delta)
+                        break
                     }
                 }
-                seedValues[index] = mapped ?: seed.shift()
-                seed = seedValues[index]
+                nextElement = mapped ?: nextElement.shift()
             }
+            minLocationValue = min(minLocationValue, nextElement.value)
         }
-        return seedValues.minOf { it.value }
+        return minLocationValue
     }
 
     private fun compute2(input: List<String>): Long {
         val (seedRangesRaw, maps) = parseInput(input)
         val seedRanges = seedRangesRaw
             .map { it.value }
-            .windowed(2, 2) { (from, range) ->
-                from..(from + range)
+            .windowed(2, 2) { (from, range) -> from..(from + range) }
+            .forEach {
+                it
             }
 
-        val range1 = 0L..1123123123123L
-        val range2 = 1123123123L..2123123123123L
-
-        val intersect = range1.intersect(range2)
         return input.size.toLong()
     }
 
@@ -87,7 +85,7 @@ class Day05 : AbstractDay() {
             .map { line ->
                 val (dstStart, srcStart, range) = line.split(" ").map { it.toLong() }
                 val delta = dstStart - srcStart
-                srcStart..(srcStart + range) to (delta to dstType)
+                srcStart..<(srcStart + range) to (delta to dstType)
             }
 
         return mapOf(srcType to mappings)
