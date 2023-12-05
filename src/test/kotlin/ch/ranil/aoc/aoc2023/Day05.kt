@@ -14,7 +14,7 @@ class Day05 : AbstractDay() {
 
     @Test
     fun part2() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(46, compute2(testInput))
         assertEquals(0, compute2(puzzleInput))
     }
 
