@@ -16,7 +16,7 @@ class Day05 : AbstractDay() {
     @Test
     fun part2() {
         assertEquals(46, compute2(testInput))
-        //assertEquals(0, compute2(puzzleInput))
+        assertEquals(0, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -31,6 +31,7 @@ class Day05 : AbstractDay() {
         seedEnd: Long,
         maps: Map<String, List<Pair<LongRange, Pair<Long, String>>>>,
     ): Long {
+        println("Calculating minLocation for: ${seedEnd - seedStart + 1} seeds")
         var minLocationValue = Long.MAX_VALUE
 
         for (seed in seedStart..seedEnd) {
