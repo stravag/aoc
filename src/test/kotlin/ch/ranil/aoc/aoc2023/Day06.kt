@@ -28,26 +28,10 @@ class Day06 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Int {
-        val results = input
+        return input
             .parse()
             .map { (time, distance) -> countPossibleOptions(time.toLong(), distance.toLong()).toInt() }
-        return results.product()
-    }
-
-    private fun countPossibleOptions(time: Long, distance: Long): Long {
-        val lowerBoundary = (1..time)
-            .takeWhile { holdButtonForMs ->
-                val d = holdButtonForMs * (time - holdButtonForMs)
-                d <= distance
-            }
-            .last()
-        val upperBoundary = (1..time).reversed()
-            .takeWhile { holdButtonForMs ->
-                val d = holdButtonForMs * (time - holdButtonForMs)
-                d <= distance
-            }
-            .last()
-        return upperBoundary - lowerBoundary - 1
+            .product()
     }
 
     private fun compute2(input: List<String>): Long {
@@ -55,10 +39,25 @@ class Day06 : AbstractDay() {
         return countPossibleOptions(time, distance)
     }
 
+    private fun countPossibleOptions(time: Long, distance: Long): Long {
+        fun getBoundary(range: LongProgression): Long {
+            for (holdButtonForMs in range) {
+                if (holdButtonForMs * (time - holdButtonForMs) > distance) {
+                    return holdButtonForMs
+                }
+            }
+            return 0
+        }
+
+        val lowerBoundary = getBoundary(1..time)
+        val upperBoundary = getBoundary((1..time).reversed())
+        return upperBoundary - lowerBoundary + 1
+    }
+
     private fun List<String>.parse(): List<Pair<Int, Int>> {
         val times = this[0].split("\\s+".toRegex()).mapNotNull { it.trim().toIntOrNull() }
-        val dists = this[1].split("\\s+".toRegex()).mapNotNull { it.trim().toIntOrNull() }
-        return times.zip(dists)
+        val distances = this[1].split("\\s+".toRegex()).mapNotNull { it.trim().toIntOrNull() }
+        return times.zip(distances)
     }
 
     private fun List<String>.parse2(): Pair<Long, Long> {
