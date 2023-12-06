@@ -4,19 +4,29 @@ import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 class Day05 : AbstractDay() {
 
     @Test
-    fun part1() {
+    fun part1Test() {
         assertEquals(35, compute1(testInput))
+    }
+
+    @Test
+    fun part1Puzzle() {
         assertEquals(261668924, compute1(puzzleInput))
     }
 
     @Test
-    fun part2() {
+    fun part2Test() {
         assertEquals(46, compute2(testInput))
+    }
+
+    @Test
+    @Ignore("brute-forced")
+    fun part2Puzzle() {
         assertEquals(24261545, compute2(puzzleInput))
     }
 
