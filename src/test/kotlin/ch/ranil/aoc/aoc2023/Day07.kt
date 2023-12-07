@@ -11,10 +11,7 @@ class Day07 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        assertEquals(
-            6440,
-            compute1(testInput)
-        )
+        assertEquals(6440, compute1(testInput))
     }
 
     @Test
@@ -34,17 +31,20 @@ class Day07 : AbstractDay() {
 
     @Test
     fun sortTests() {
-        assertEquals(HandType.entries, HandType.entries.shuffled().sorted())
-
-        val c1 = "KK677 0".toHand().compareTo("KTJJT 0".toHand())
-        assertTrue(c1 < 0)
+        assertTrue(Card('T') < Card('K'))
+        val twoPairTen = "KTJJT 0".toHand()
+        val twoPairKing = "KK677 0".toHand()
+        assertTrue(twoPairTen < twoPairKing)
     }
 
-    private fun compute1(input: List<String>): Int {
+    private fun compute1(input: List<String>): Long {
         val hands = input
             .map { it.toHand() }
-            .sortedDescending()
-        return hands.size
+            .sorted()
+        return hands
+            .foldIndexed(0L) { index, acc, hand ->
+                acc + (index + 1) * hand.bid
+            }
     }
 
     private fun compute2(input: List<String>): Int {
@@ -115,13 +115,13 @@ class Day07 : AbstractDay() {
     }
 
     enum class HandType {
-        FIVE_OF_A_KIND,
-        FOUR_OF_A_KIND,
-        FULL_HOUSE,
-        THREE_OF_A_KIND,
-        TWO_PAIR,
-        ONE_PAIR,
         HIGH_CARD,
+        ONE_PAIR,
+        TWO_PAIR,
+        THREE_OF_A_KIND,
+        FULL_HOUSE,
+        FOUR_OF_A_KIND,
+        FIVE_OF_A_KIND,
     }
 
     data class Card(val v: Char) : Comparable<Card> {
@@ -145,10 +145,8 @@ class Day07 : AbstractDay() {
                 '5' to 5,
                 '4' to 4,
                 '3' to 3,
-                '2' to 2
+                '2' to 2,
             )
         }
-
     }
-
 }
