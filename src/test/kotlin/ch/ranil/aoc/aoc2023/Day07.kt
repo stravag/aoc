@@ -1,7 +1,10 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.aoc2023.Day07.Card.Companion.toCard1
+import ch.ranil.aoc.aoc2023.Day07.Card.Companion.toCard2
 import ch.ranil.aoc.aoc2023.Day07.Hand.Companion.toHand
+import ch.ranil.aoc.aoc2023.Day07.Hand.Companion.toHand2
 import ch.ranil.aoc.aoc2023.Day07.HandType.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -21,7 +24,7 @@ class Day07 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(5905, compute2(testInput))
     }
 
     @Test
@@ -31,10 +34,43 @@ class Day07 : AbstractDay() {
 
     @Test
     fun sortTests() {
-        assertTrue(Card('T') < Card('K'))
+        assertTrue('J'.toCard1() > 'T'.toCard1())
+        assertTrue('J'.toCard2() < 'T'.toCard2())
         val twoPairTen = "KTJJT 0".toHand()
         val twoPairKing = "KK677 0".toHand()
         assertTrue(twoPairTen < twoPairKing)
+    }
+
+    @Test
+    fun comparisionTests() {
+        assertTrue("JKKK2 0".toHand2() < "QQQQ2 0".toHand2())
+    }
+
+    @Test
+    fun elevationTests() {
+        fun assertElevation(type: HandType, s: String) = assertEquals(type, s.toHand2().type)
+
+        assertElevation(HIGH_CARD, "23456 0")
+        assertElevation(ONE_PAIR, "2345J 0")
+
+        assertElevation(ONE_PAIR, "23455 0")
+        assertElevation(THREE_OF_A_KIND, "234JJ 0")
+        assertElevation(THREE_OF_A_KIND, "2245J 0")
+
+        assertElevation(TWO_PAIR, "22455 0")
+        assertElevation(FOUR_OF_A_KIND, "224JJ 0")
+        assertElevation(FULL_HOUSE, "22J44 0")
+
+        assertElevation(THREE_OF_A_KIND, "22234 0")
+        assertElevation(FOUR_OF_A_KIND, "222J4 0")
+        assertElevation(FIVE_OF_A_KIND, "222JJ 0")
+
+        assertElevation(FULL_HOUSE, "22233 0")
+        assertElevation(FIVE_OF_A_KIND, "222JJ 0")
+        assertElevation(FIVE_OF_A_KIND, "JJJ22 0")
+
+        assertElevation(FOUR_OF_A_KIND, "22223 0")
+        assertElevation(FIVE_OF_A_KIND, "2222J 0")
     }
 
     private fun compute1(input: List<String>): Long {
@@ -47,15 +83,62 @@ class Day07 : AbstractDay() {
             }
     }
 
-    private fun compute2(input: List<String>): Int {
-        return input.size
+    private fun compute2(input: List<String>): Long {
+        val hands = input
+            .map { it.toHand2() }
+            .sorted()
+        return hands
+            .foldIndexed(0L) { index, acc, hand ->
+                acc + (index + 1) * hand.bid
+            }
     }
 
     data class Hand(
         val cards: List<Card>,
         val type: HandType,
         val bid: Int,
+        val charMap: Map<Char, Int>,
     ) : Comparable<Hand> {
+
+        fun elevate(): Hand {
+            val jokerCount = charMap.getOrDefault('J', 0)
+            val elevatedType = when (type) {
+                HIGH_CARD -> when (jokerCount) {
+                    1 -> ONE_PAIR
+                    else -> type
+                }
+
+                ONE_PAIR -> when (jokerCount) {
+                    1, 2 -> THREE_OF_A_KIND
+                    else -> type
+                }
+
+                TWO_PAIR -> when (jokerCount) {
+                    2 -> FOUR_OF_A_KIND
+                    1 -> FULL_HOUSE
+                    else -> type
+                }
+
+                THREE_OF_A_KIND -> when (jokerCount) {
+                    2 -> FIVE_OF_A_KIND
+                    1 -> FOUR_OF_A_KIND
+                    else -> type
+                }
+
+                FULL_HOUSE -> when (jokerCount) {
+                    2, 3 -> FIVE_OF_A_KIND
+                    else -> type
+                }
+
+                FOUR_OF_A_KIND -> when {
+                    jokerCount > 0 -> FIVE_OF_A_KIND
+                    else -> type
+                }
+
+                FIVE_OF_A_KIND -> type
+            }
+            return copy(type = elevatedType)
+        }
 
         override fun compareTo(other: Hand): Int {
             val handComp = type.compareTo(other.type)
@@ -77,19 +160,28 @@ class Day07 : AbstractDay() {
         companion object {
             fun String.toHand(): Hand {
                 val (cardsPart, bidPart) = this.split(" ")
-                val cards = cardsPart.map { Card(it) }
+                val cards = cardsPart.map { it.toCard1() }
                 val bid = bidPart.toInt()
-                val type = cards.handType()
-                return Hand(cards, type, bid)
+                val (type, charMap) = cards.handType()
+                return Hand(cards, type, bid, charMap)
             }
 
-            private fun List<Card>.handType(): HandType {
+            fun String.toHand2(): Hand {
+                val (cardsPart, bidPart) = this.split(" ")
+                val cards = cardsPart.map { it.toCard2() }
+                val bid = bidPart.toInt()
+                val (type, charMap) = cards.handType()
+                val hand = Hand(cards, type, bid, charMap)
+                return hand.elevate()
+            }
+
+            private fun List<Card>.handType(): Pair<HandType, Map<Char, Int>> {
                 val map = mutableMapOf<Char, Int>()
                 this.forEach {
                     val c = map[it.v] ?: 0
                     map[it.v] = c + 1
                 }
-                return when (map.size) {
+                val type = when (map.size) {
                     1 -> FIVE_OF_A_KIND
                     2 -> {
                         if (map.values.any { cardCount -> cardCount == 4 }) {
@@ -110,6 +202,7 @@ class Day07 : AbstractDay() {
                         }
                     }
                 }
+                return type to map
             }
         }
     }
@@ -124,15 +217,15 @@ class Day07 : AbstractDay() {
         FIVE_OF_A_KIND,
     }
 
-    data class Card(val v: Char) : Comparable<Card> {
-        private val cardVal = cardMap.getValue(v)
-
+    data class Card(val v: Char, private val cardVal: Int) : Comparable<Card> {
         override fun compareTo(other: Card): Int {
             return cardVal.compareTo(other.cardVal)
         }
 
         companion object {
-            val cardMap = mapOf(
+            fun Char.toCard1(): Card = Card(this, cardMap1.getValue(this))
+            fun Char.toCard2(): Card = Card(this, cardMap2.getValue(this))
+            private val cardMap1 = mapOf(
                 'A' to 14,
                 'K' to 13,
                 'Q' to 12,
@@ -146,6 +239,21 @@ class Day07 : AbstractDay() {
                 '4' to 4,
                 '3' to 3,
                 '2' to 2,
+            )
+            private val cardMap2 = mapOf(
+                'A' to 14,
+                'K' to 13,
+                'Q' to 12,
+                'T' to 10,
+                '9' to 9,
+                '8' to 8,
+                '7' to 7,
+                '6' to 6,
+                '5' to 5,
+                '4' to 4,
+                '3' to 3,
+                '2' to 2,
+                'J' to 1,
             )
         }
     }
