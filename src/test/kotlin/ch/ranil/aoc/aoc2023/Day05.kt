@@ -3,20 +3,31 @@ package ch.ranil.aoc.aoc2023
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
 import kotlin.math.min
+import kotlin.system.measureTimeMillis
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 class Day05 : AbstractDay() {
 
     @Test
-    fun part1() {
+    fun part1Test() {
         assertEquals(35, compute1(testInput))
+    }
+
+    @Test
+    fun part1Puzzle() {
         assertEquals(261668924, compute1(puzzleInput))
     }
 
     @Test
-    fun part2() {
+    fun part2Test() {
         assertEquals(46, compute2(testInput))
-        assertEquals(0, compute2(puzzleInput))
+    }
+
+    @Test
+    @Ignore("brute-forced")
+    fun part2Puzzle() {
+        assertEquals(24261545, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -33,23 +44,25 @@ class Day05 : AbstractDay() {
     ): Long {
         println("Calculating minLocation for: ${seedEnd - seedStart + 1} seeds")
         var minLocationValue = Long.MAX_VALUE
-
-        for (seed in seedStart..seedEnd) {
-            var nextElement = Element("seed", seed)
-            while (nextElement.type != "location") {
-                val map = maps.getValue(nextElement.type)
-                var mapped: Element? = null
-                for ((range, mapping) in map) {
-                    val (delta, dstType) = mapping
-                    if (range.contains(nextElement.value)) {
-                        mapped = Element(dstType, nextElement.value + delta)
-                        break
+        val millis = measureTimeMillis {
+            for (seed in seedStart..seedEnd) {
+                var nextElement = Element("seed", seed)
+                while (nextElement.type != "location") {
+                    val map = maps.getValue(nextElement.type)
+                    var mapped: Element? = null
+                    for ((range, mapping) in map) {
+                        val (delta, dstType) = mapping
+                        if (range.contains(nextElement.value)) {
+                            mapped = Element(dstType, nextElement.value + delta)
+                            break
+                        }
                     }
+                    nextElement = mapped ?: nextElement.shift()
                 }
-                nextElement = mapped ?: nextElement.shift()
+                minLocationValue = min(minLocationValue, nextElement.value)
             }
-            minLocationValue = min(minLocationValue, nextElement.value)
         }
+        println("Calculated in ${millis}ms")
         return minLocationValue
     }
 
@@ -119,5 +132,4 @@ class Day05 : AbstractDay() {
             )
         }
     }
-
 }
