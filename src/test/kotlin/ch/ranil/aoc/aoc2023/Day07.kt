@@ -8,7 +8,7 @@ class Day07 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        assertEquals(0, compute1(testInput))
+        assertEquals(6440, compute1(testInput))
     }
 
     @Test
