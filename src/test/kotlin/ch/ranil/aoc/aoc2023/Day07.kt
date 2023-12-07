@@ -29,7 +29,7 @@ class Day07 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(249631254, compute2(puzzleInput))
     }
 
     @Test
@@ -43,6 +43,7 @@ class Day07 : AbstractDay() {
 
     @Test
     fun comparisionTests() {
+        assertTrue("JJJJJ 0".toHand2() < "JJJJ2 0".toHand2())
         assertTrue("JKKK2 0".toHand2() < "QQQQ2 0".toHand2())
     }
 
@@ -63,6 +64,7 @@ class Day07 : AbstractDay() {
 
         assertElevation(THREE_OF_A_KIND, "22234 0")
         assertElevation(FOUR_OF_A_KIND, "222J4 0")
+        assertElevation(FOUR_OF_A_KIND, "JJJ23 0")
         assertElevation(FIVE_OF_A_KIND, "222JJ 0")
 
         assertElevation(FULL_HOUSE, "22233 0")
@@ -71,6 +73,9 @@ class Day07 : AbstractDay() {
 
         assertElevation(FOUR_OF_A_KIND, "22223 0")
         assertElevation(FIVE_OF_A_KIND, "2222J 0")
+        assertElevation(FIVE_OF_A_KIND, "JJJJ2 0")
+
+        assertElevation(FIVE_OF_A_KIND, "JJJJJ 0")
     }
 
     private fun compute1(input: List<String>): Long {
@@ -121,7 +126,7 @@ class Day07 : AbstractDay() {
 
                 THREE_OF_A_KIND -> when (jokerCount) {
                     2 -> FIVE_OF_A_KIND
-                    1 -> FOUR_OF_A_KIND
+                    1, 3 -> FOUR_OF_A_KIND
                     else -> type
                 }
 
@@ -176,11 +181,7 @@ class Day07 : AbstractDay() {
             }
 
             private fun List<Card>.handType(): Pair<HandType, Map<Char, Int>> {
-                val map = mutableMapOf<Char, Int>()
-                this.forEach {
-                    val c = map[it.v] ?: 0
-                    map[it.v] = c + 1
-                }
+                val map = this.groupBy { it.v }.mapValues { it.value.size }
                 val type = when (map.size) {
                     1 -> FIVE_OF_A_KIND
                     2 -> {
@@ -225,36 +226,8 @@ class Day07 : AbstractDay() {
         companion object {
             fun Char.toCard1(): Card = Card(this, cardMap1.getValue(this))
             fun Char.toCard2(): Card = Card(this, cardMap2.getValue(this))
-            private val cardMap1 = mapOf(
-                'A' to 14,
-                'K' to 13,
-                'Q' to 12,
-                'J' to 11,
-                'T' to 10,
-                '9' to 9,
-                '8' to 8,
-                '7' to 7,
-                '6' to 6,
-                '5' to 5,
-                '4' to 4,
-                '3' to 3,
-                '2' to 2,
-            )
-            private val cardMap2 = mapOf(
-                'A' to 14,
-                'K' to 13,
-                'Q' to 12,
-                'T' to 10,
-                '9' to 9,
-                '8' to 8,
-                '7' to 7,
-                '6' to 6,
-                '5' to 5,
-                '4' to 4,
-                '3' to 3,
-                '2' to 2,
-                'J' to 1,
-            )
+            private val cardMap1 = "23456789TJQKA".mapIndexed { i, c -> c to i }.toMap()
+            private val cardMap2 = "J23456789TQKA".mapIndexed { i, c -> c to i }.toMap()
         }
     }
 }
