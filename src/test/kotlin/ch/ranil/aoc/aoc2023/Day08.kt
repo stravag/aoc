@@ -2,6 +2,7 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import ch.ranil.aoc.aoc2023.Day08.Direction.*
+import ch.ranil.aoc.lcm
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -24,7 +25,7 @@ class Day08 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(12833235391111, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -42,24 +43,25 @@ class Day08 : AbstractDay() {
         return hops
     }
 
-    private fun compute2(input: List<String>): Int {
+    private fun compute2(input: List<String>): Long {
         val (sequence, map) = parse(input)
 
-        var hops = 0
         val startNodes = map.keys.filter { it.endsWith("A") }
-        var nodes = startNodes
-        while (!nodes.all { it.endsWith("Z") }) {
-            val d = sequence.next()
-            nodes = nodes.map { node ->
-                when (d) {
-                    LEFT -> map.getValue(node).first
-                    RIGHT -> map.getValue(node).second
+        val hops = startNodes.map { node ->
+            sequence.reset()
+            var hops = 0L
+            var n = node
+            while (!n.endsWith("Z")) {
+                n = when (sequence.next()) {
+                    LEFT -> map.getValue(n).first
+                    RIGHT -> map.getValue(n).second
                 }
+                hops++
             }
-            hops++
+            hops
         }
 
-        return hops
+        return hops.reduceRight { a, b -> lcm(a, b) }
     }
 
     enum class Direction {
