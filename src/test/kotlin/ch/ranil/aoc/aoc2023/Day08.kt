@@ -19,7 +19,7 @@ class Day08 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(6, compute2(test2Input))
     }
 
     @Test
@@ -31,11 +31,11 @@ class Day08 : AbstractDay() {
         val (sequence, map) = parse(input)
 
         var hops = 0
-        var pos = "AAA"
-        while (pos != "ZZZ") {
-            pos = when (sequence.next()) {
-                LEFT -> map.getValue(pos).first
-                RIGHT -> map.getValue(pos).second
+        var node = "AAA"
+        while (node != "ZZZ") {
+            node = when (sequence.next()) {
+                LEFT -> map.getValue(node).first
+                RIGHT -> map.getValue(node).second
             }
             hops++
         }
@@ -43,7 +43,23 @@ class Day08 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Int {
-        return input.size
+        val (sequence, map) = parse(input)
+
+        var hops = 0
+        val startNodes = map.keys.filter { it.endsWith("A") }
+        var nodes = startNodes
+        while (!nodes.all { it.endsWith("Z") }) {
+            val d = sequence.next()
+            nodes = nodes.map { node ->
+                when (d) {
+                    LEFT -> map.getValue(node).first
+                    RIGHT -> map.getValue(node).second
+                }
+            }
+            hops++
+        }
+
+        return hops
     }
 
     enum class Direction {
@@ -67,7 +83,7 @@ class Day08 : AbstractDay() {
             .associateBy(
                 keySelector = { (k, _) -> k },
                 valueTransform = { (_, v) ->
-                    val vals = Regex("\\(([A-Z]{3}), ([A-Z]{3})\\)").find(v)!!.groupValues
+                    val vals = Regex("\\((\\w{3}), (\\w{3})\\)").find(v)!!.groupValues
                     vals[1] to vals[2]
                 }
             )
@@ -80,6 +96,10 @@ class Day08 : AbstractDay() {
         fun next(): Direction {
             val d = Direction.of(s[i++ % s.length])
             return d
+        }
+
+        fun reset() {
+            i = 0
         }
     }
 
