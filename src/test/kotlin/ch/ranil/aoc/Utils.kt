@@ -6,6 +6,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.test.assertEquals
 
+fun <T> T.alsoPrint(): T {
+    println(this)
+    return this
+}
+
 fun LongRange.rangeOverlap(other: LongRange): LongRange {
     val first = max(this.first, other.first)
     val last = min(this.last, other.last)
