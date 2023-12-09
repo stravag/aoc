@@ -18,12 +18,12 @@ class Day09 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(test2Input))
+        assertEquals(2, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(1087, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -32,24 +32,41 @@ class Day09 : AbstractDay() {
                 line
                     .readNumbers()
                     .getHistory()
-                    .extrapolate()
+                    .extrapolateRight()
             }
     }
 
     private fun compute2(input: List<String>): Int {
-        return 0
+        return input
+            .sumOf { line ->
+                line
+                    .readNumbers()
+                    .getHistory()
+                    .extrapolateLeft()
+            }
     }
 
     private fun String.readNumbers(): List<Int> {
         return this.split(" ").map { it.toInt() }
     }
 
-    private fun List<List<Int>>.extrapolate(): Int {
+    private fun List<List<Int>>.extrapolateRight(): Int {
         val numbers = this
         var i = numbers.size - 2
         var extrapolatedNum = 0
         while (i >= 0) {
             extrapolatedNum += numbers[i--].last()
+            println("Extrapolated $extrapolatedNum")
+        }
+        return extrapolatedNum
+    }
+
+    private fun List<List<Int>>.extrapolateLeft(): Int {
+        val numbers = this
+        var i = numbers.size - 2
+        var extrapolatedNum = 0
+        while (i >= 0) {
+            extrapolatedNum = numbers[i--].first() - extrapolatedNum
             println("Extrapolated $extrapolatedNum")
         }
         return extrapolatedNum
