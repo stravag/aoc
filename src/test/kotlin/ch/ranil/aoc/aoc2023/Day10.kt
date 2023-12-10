@@ -26,7 +26,7 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(25, compute2(puzzleInput))
+        assertEquals(0, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
