@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
-    private var startPipe = "S"
+    private var loopPositions = mutableSetOf<Point>()
 
     @Test
     fun part1Test() {
@@ -21,16 +21,17 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(test2Input))
+        assertEquals(4, compute2(test2Input))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(25, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
         inputMap = input
+        loopPositions = mutableSetOf()
 
         var distance = -1
         traverseLoop { _, _ ->
@@ -48,8 +49,8 @@ class Day10 : AbstractDay() {
         // if pipe ends face opposite directions: no crossing (F--J / L--7)
         // replace S with actual pipe piece (hope note necessary)
         inputMap = input
+        loopPositions = mutableSetOf()
 
-        val loopPositions = mutableSetOf<Point>()
         traverseLoop { a, b -> loopPositions.addAll(listOf(a, b)) }
 
         val candidatePositions = inputMap.flatMapIndexed { y, s ->
@@ -63,20 +64,22 @@ class Day10 : AbstractDay() {
             .filterNot { loopPositions.contains(it) }
             .forEach { pointToCheck ->
                 if (!connectedToEdge.contains(pointToCheck)) {
-                    val pathToEdge = findPathToEdge(pointToCheck, loopPositions)
+                    val pathToEdge = findPathToEdge(pointToCheck)
                     connectedToEdge.addAll(pathToEdge)
                 }
             }
 
-        (candidatePositions - loopPositions - connectedToEdge)
+        val pointsInside = (candidatePositions - loopPositions - connectedToEdge)
+            .filter { p ->
+                countLoopCrossings(p, connectedToEdge).all { it % 2 != 0 }
+            }
 
-        printMap(loopPositions, connectedToEdge)
-        return input.size
+        printMap(pointsInside)
+        return pointsInside.count()
     }
 
     private fun findPathToEdge(
         rootPoint: Point,
-        loopPositions: Set<Point>,
     ): Set<Point> {
         val seen = mutableSetOf(rootPoint)
         val queue = mutableListOf(rootPoint)
@@ -164,15 +167,90 @@ class Day10 : AbstractDay() {
         return edges().any { !it.isContainedInMap() }
     }
 
-    private fun loopCrossings(pos: Point): List<Int> {
-        return emptyList()
+    private fun countLoopCrossings(pos: Point, connectedToEdge: Set<Point>): List<Int> {
+        val crossings = MutableList(4) { 0 }
+        var p: Point
+        var riding: Char?
+
+        p = pos
+        riding = null
+        while (!connectedToEdge.contains(p)) {
+            p = p.north()
+            if (!loopPositions.contains(p)) continue
+            when (val char = getChar(p)) {
+                '|' -> Unit
+                '-' -> crossings[0]++
+                'L' -> riding = handleRiding('F', riding, char) { crossings[0]++ }
+                'J' -> riding = handleRiding('7', riding, char) { crossings[0]++ }
+                '7' -> riding = handleRiding('J', riding, char) { crossings[0]++ }
+                'F' -> riding = handleRiding('L', riding, char) { crossings[0]++ }
+            }
+        }
+
+        p = pos
+        riding = null
+        while (!connectedToEdge.contains(p)) {
+            p = p.south()
+            if (!loopPositions.contains(p)) continue
+            when (val char = getChar(p)) {
+                '|' -> Unit
+                '-' -> crossings[1]++
+                'L' -> riding = handleRiding('F', riding, char) { crossings[1]++ }
+                'J' -> riding = handleRiding('7', riding, char) { crossings[1]++ }
+                '7' -> riding = handleRiding('J', riding, char) { crossings[1]++ }
+                'F' -> riding = handleRiding('L', riding, char) { crossings[1]++ }
+            }
+        }
+
+        p = pos
+        riding = null
+        while (!connectedToEdge.contains(p)) {
+            p = p.east()
+            if (!loopPositions.contains(p)) continue
+            when (val char = getChar(p)) {
+                '|' -> crossings[2]++
+                '-' -> Unit
+                'L' -> riding = handleRiding('J', riding, char) { crossings[2]++ }
+                'J' -> riding = handleRiding('L', riding, char) { crossings[2]++ }
+                '7' -> riding = handleRiding('F', riding, char) { crossings[2]++ }
+                'F' -> riding = handleRiding('7', riding, char) { crossings[2]++ }
+            }
+        }
+
+        p = pos
+        riding = null
+        while (!connectedToEdge.contains(p)) {
+            p = p.west()
+            if (!loopPositions.contains(p)) continue
+            when (val char = getChar(p)) {
+                '|' -> crossings[3]++
+                '-' -> Unit
+                'L' -> riding = handleRiding('J', riding, char) { crossings[3]++ }
+                'J' -> riding = handleRiding('L', riding, char) { crossings[3]++ }
+                '7' -> riding = handleRiding('F', riding, char) { crossings[3]++ }
+                'F' -> riding = handleRiding('7', riding, char) { crossings[3]++ }
+            }
+        }
+        return crossings
+    }
+
+    private fun handleRiding(
+        matching: Char,
+        riding: Char?,
+        char: Char,
+        increaseCrossings: () -> Unit
+    ) = if (riding == matching) {
+        char
+    } else {
+        increaseCrossings()
+        null
     }
 
     private fun getChar(pos: Point): Char {
         return inputMap[pos.y][pos.x]
     }
 
-    private fun printMap(loopPositions: Set<Point>, connectedToEdge: MutableSet<Point>) {
+    private fun printMap(connectedToEdge: Collection<Point>) {
         inputMap.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
                 val p = Point(x, y)
@@ -183,9 +261,9 @@ class Day10 : AbstractDay() {
                 } else if (connectedToEdge.contains(p)) {
                     val red = "\u001b[33m"
                     val reset = "\u001b[0m"
-                    print(red + c + reset)
+                    print("$red.$reset")
                 } else {
-                    print(c)
+                    print(".")
                 }
             }
             println()
