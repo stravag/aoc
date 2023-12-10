@@ -7,6 +7,7 @@ import kotlin.test.assertEquals
 class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
+    private var startPipe = "S"
 
     @Test
     fun part1Test() {
@@ -20,7 +21,7 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(0, compute2(test2Input))
     }
 
     @Test
@@ -31,29 +32,87 @@ class Day10 : AbstractDay() {
     private fun compute1(input: List<String>): Int {
         inputMap = input
 
-        var distance = 1
+        var distance = -1
+        traverseLoop { _, _ ->
+            distance++
+        }
+
+        return distance
+    }
+
+
+    private fun compute2(input: List<String>): Int {
+        // if pipe cross count even times: outside
+        // if pipe cross count odd times: inside
+        // if pipe ends face same directions: no crossing (L--J / F--7)
+        // if pipe ends face opposite directions: no crossing (F--J / L--7)
+        // replace S with actual pipe piece (hope note necessary)
+        inputMap = input
+
+        val loopPositions = mutableSetOf<Point>()
+        traverseLoop { a, b -> loopPositions.addAll(listOf(a, b)) }
+
+        val candidatePositions = inputMap.flatMapIndexed { y, s ->
+            s.mapIndexed { x, _ ->
+                Point(x, y)
+            }
+        }
+
+        val connectedToEdge = mutableSetOf<Point>()
+        candidatePositions
+            .filterNot { loopPositions.contains(it) }
+            .forEach { pointToCheck ->
+                if (!connectedToEdge.contains(pointToCheck)) {
+                    val pathToEdge = findPathToEdge(pointToCheck, loopPositions)
+                    connectedToEdge.addAll(pathToEdge)
+                }
+            }
+
+        (candidatePositions - loopPositions - connectedToEdge)
+
+        printMap(loopPositions, connectedToEdge)
+        return input.size
+    }
+
+    private fun findPathToEdge(
+        rootPoint: Point,
+        loopPositions: Set<Point>,
+    ): Set<Point> {
+        val seen = mutableSetOf(rootPoint)
+        val queue = mutableListOf(rootPoint)
+        while (queue.isNotEmpty()) {
+            val p = queue.removeFirst()
+            if (p.isEdgeOfMap()) {
+                return seen
+            }
+            p.edges()
+                .filterNot { loopPositions.contains(it) }
+                .filterNot { seen.contains(it) }
+                .forEach {
+                    seen.add(it)
+                    queue.add(it)
+                }
+        }
+        return emptySet()
+    }
+
+    private fun traverseLoop(actionOnStep: (Point, Point) -> Unit) {
         val start = findStart()
-        println("At position: ${getChar(start)}/${getChar(start)}")
+        actionOnStep(start, start)
+
         var prevA = start
         var prevB = start
-        var (posA, posB) = requireNotNull(findConnectingPoints(start))
+        var (posA, posB) = findStartConnectors(start)
         do {
-            println("At position: ${getChar(posA)}/${getChar(posB)}")
+            actionOnStep(posA, posB)
             val nextA = posA.next(prevA)
             val nextB = posB.next(prevB)
             prevA = posA
             prevB = posB
             posA = nextA
             posB = nextB
-            distance++
         } while (posA != posB)
-
-        return distance
-    }
-
-    private fun compute2(input: List<String>): Int {
-        inputMap = input
-        return input.size
+        actionOnStep(posA, posB)
     }
 
     private fun findStart(): Point {
@@ -78,7 +137,6 @@ class Day10 : AbstractDay() {
             'J' -> Connections(pos.north(), pos.west())
             '7' -> Connections(pos.south(), pos.west())
             'F' -> Connections(pos.south(), pos.east())
-            'S' -> findStartConnectors(pos)
             else -> null
         }
     }
@@ -102,8 +160,36 @@ class Day10 : AbstractDay() {
         return x >= 0 && x < inputMap.first().length && y >= 0 && y < inputMap.size
     }
 
+    private fun Point.isEdgeOfMap(): Boolean {
+        return edges().any { !it.isContainedInMap() }
+    }
+
+    private fun loopCrossings(pos: Point): List<Int> {
+        return emptyList()
+    }
+
     private fun getChar(pos: Point): Char {
         return inputMap[pos.y][pos.x]
+    }
+
+    private fun printMap(loopPositions: Set<Point>, connectedToEdge: MutableSet<Point>) {
+        inputMap.forEachIndexed { y, s ->
+            s.forEachIndexed { x, c ->
+                val p = Point(x, y)
+                if (loopPositions.contains(p)) {
+                    val red = "\u001b[31m"
+                    val reset = "\u001b[0m"
+                    print(red + c + reset)
+                } else if (connectedToEdge.contains(p)) {
+                    val red = "\u001b[33m"
+                    val reset = "\u001b[0m"
+                    print(red + c + reset)
+                } else {
+                    print(c)
+                }
+            }
+            println()
+        }
     }
 
     private fun Point.north() = Point(x, y - 1)
