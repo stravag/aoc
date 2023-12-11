@@ -5,7 +5,9 @@ import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-data class Point(val x: Int, val y: Int)
+data class Point(val x: Int, val y: Int) {
+    override fun toString(): String = "($x,$y)"
+}
 
 fun Point.isAdjacentTo(other: Point): Boolean {
     return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)

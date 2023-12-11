@@ -26,6 +26,8 @@ fun List<Int>.product(): Int {
     return this.reduce { acc, t -> acc * t }
 }
 
+fun Int.isEven(): Boolean = this % 2 == 0
+
 fun lcm(number1: Long, number2: Long): Long {
     if (number1 == 0L || number2 == 0L) {
         return 0

@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.isEven
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -22,7 +23,64 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(4, compute2(test2Input))
+        assertEquals(
+            18, compute2(
+                """
+                ............
+                .S--------7.
+                .|F------7|.
+                .||......||.
+                .||......||.
+                .||......||.
+                .|L--7F--J|.
+                .|...||...|.
+                .|...||...|.
+                .|...||...|.
+                .L---JL---J.
+                ............
+            """.trimIndent().lines()
+            )
+        )
+    }
+
+    @Test
+    fun part2Test2() {
+        assertEquals(
+            8, compute2(
+                """
+                .F----7F7F7F7F-7....
+                .|F--7||||||||FJ....
+                .||.FJ||||||||L7....
+                FJL7L7LJLJ||LJ.L-7..
+                L--J.L7...LJS7F-7L7.
+                ....F-J..F7FJ|L7L7L7
+                ....L7.F7||L7|.L7L7|
+                .....|FJLJ|FJ|F7|.LJ
+                ....FJL-7.||.||||...
+                ....L---J.LJ.LJLJ...
+            """.trimIndent().lines()
+            )
+        )
+    }
+
+    @Test
+    fun part2Test3() {
+        assertEquals(
+            10, compute2(
+                """
+                FF7FSF7F7F7F7F7F---7
+                L|LJ||||||||||||F--J
+                FL-7LJLJ||||||LJL-77
+                F--JF--7||LJLJ7F7FJ-
+                L---JF-JLJ.||-FJLJJ7
+                |F|F-JF---7F7-L7L|7|
+                |FFJF7L7F-JF7|JL---7
+                7-L-JL7||F7|L7F-7F7|
+                L.L7LFJ|||||FJL7||LJ
+                L7JLJL-JLJLJL--JLJ.L
+            """.trimIndent().lines()
+            )
+        )
     }
 
     @Test
@@ -61,19 +119,9 @@ class Day10 : AbstractDay() {
             }
         }
 
-        val connectedToEdge = mutableSetOf<Point>()
-        candidatePositions
-            .filterNot { loopPositions.contains(it) }
-            .forEach { pointToCheck ->
-                if (!connectedToEdge.contains(pointToCheck)) {
-                    val pathToEdge = findPathToEdge(pointToCheck)
-                    connectedToEdge.addAll(pathToEdge)
-                }
-            }
-
-        val pointsInside = (candidatePositions - loopPositions - connectedToEdge)
-            .filter { p ->
-                countLoopCrossings(p, connectedToEdge).all { it % 2 != 0 }
+        val pointsInside = (candidatePositions - loopPositions)
+            .filterNot { p ->
+                isConnectedToEdge(p)
             }
 
         printMap(pointsInside)
@@ -189,83 +237,108 @@ class Day10 : AbstractDay() {
         return edges().any { !it.isContainedInMap() }
     }
 
-    private fun countLoopCrossings(pos: Point, connectedToEdge: Set<Point>): List<Int> {
-        val crossings = MutableList(4) { 0 }
+    private fun isConnectedToEdge(pos: Point): Boolean {
+        println("Counting loop crossings for $pos")
+        var crossings = 0
         var p: Point
         var riding: Char?
 
         p = pos
         riding = null
-        while (!connectedToEdge.contains(p)) {
+        println("Riding north")
+        while (!p.isEdgeOfMap()) {
             p = p.north()
+            val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (val char = getChar(p)) {
+            when (char) {
                 '|' -> Unit
-                '-' -> crossings[0]++
-                'L' -> riding = handleRiding('F', riding, char) { crossings[0]++ }
-                'J' -> riding = handleRiding('7', riding, char) { crossings[0]++ }
-                '7' -> riding = handleRiding('J', riding, char) { crossings[0]++ }
-                'F' -> riding = handleRiding('L', riding, char) { crossings[0]++ }
+                '-' -> crossings++
+                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
+                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
+                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
+                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
             }
+            println("Riding on $riding, crossings = $crossings")
         }
 
+        if (crossings.isEven()) return true
+
         p = pos
+        crossings = 0
         riding = null
-        while (!connectedToEdge.contains(p)) {
+        println("Riding south")
+        while (!p.isEdgeOfMap()) {
             p = p.south()
+            val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (val char = getChar(p)) {
+            when (char) {
                 '|' -> Unit
-                '-' -> crossings[1]++
-                'L' -> riding = handleRiding('F', riding, char) { crossings[1]++ }
-                'J' -> riding = handleRiding('7', riding, char) { crossings[1]++ }
-                '7' -> riding = handleRiding('J', riding, char) { crossings[1]++ }
-                'F' -> riding = handleRiding('L', riding, char) { crossings[1]++ }
+                '-' -> crossings++
+                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
+                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
+                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
+                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
             }
+            println("Riding on $riding, crossings = $crossings")
         }
 
+        if (crossings.isEven()) return true
+
+        crossings = 0
         p = pos
         riding = null
-        while (!connectedToEdge.contains(p)) {
+        println("Riding east")
+        while (!p.isEdgeOfMap()) {
             p = p.east()
+            val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (val char = getChar(p)) {
-                '|' -> crossings[2]++
+            when (char) {
+                '|' -> crossings++
                 '-' -> Unit
-                'L' -> riding = handleRiding('J', riding, char) { crossings[2]++ }
-                'J' -> riding = handleRiding('L', riding, char) { crossings[2]++ }
-                '7' -> riding = handleRiding('F', riding, char) { crossings[2]++ }
-                'F' -> riding = handleRiding('7', riding, char) { crossings[2]++ }
+                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
+                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
+                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
+                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
             }
+            println("Riding on $riding, crossings = $crossings")
         }
 
+        if (crossings.isEven()) return true
+
+        crossings = 0
         p = pos
         riding = null
-        while (!connectedToEdge.contains(p)) {
+        println("Riding west")
+        while (!p.isEdgeOfMap()) {
             p = p.west()
+            val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (val char = getChar(p)) {
-                '|' -> crossings[3]++
+            when (char) {
+                '|' -> crossings++
                 '-' -> Unit
-                'L' -> riding = handleRiding('J', riding, char) { crossings[3]++ }
-                'J' -> riding = handleRiding('L', riding, char) { crossings[3]++ }
-                '7' -> riding = handleRiding('F', riding, char) { crossings[3]++ }
-                'F' -> riding = handleRiding('7', riding, char) { crossings[3]++ }
+                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
+                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
+                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
+                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
             }
+            println("Riding on $riding, crossings = $crossings")
         }
-        return crossings
+
+        return crossings.isEven()
     }
 
     private fun handleRiding(
-        matching: Char,
+        matchingCrossing: Char,
         riding: Char?,
         char: Char,
         increaseCrossings: () -> Unit
-    ) = if (riding == matching) {
-        char
-    } else {
+    ) = if (riding == matchingCrossing) {
+        // rode up to a crossing
         increaseCrossings()
         null
+    } else {
+        // continue riding
+        char
     }
 
     private fun getChar(pos: Point): Char {
@@ -273,7 +346,16 @@ class Day10 : AbstractDay() {
         return if (c == 'S') startPipe else c
     }
 
-    private fun printMap(connectedToEdge: Collection<Point>) {
+    private fun getCharCleanedUp(pos: Point): Char {
+        return if (loopPositions.contains(pos)) {
+            val c = inputMap[pos.y][pos.x]
+            if (c == 'S') startPipe else c
+        } else {
+            '.'
+        }
+    }
+
+    private fun printMap(pointsInside: Collection<Point>) {
         inputMap.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
                 val p = Point(x, y)
@@ -281,10 +363,10 @@ class Day10 : AbstractDay() {
                     val red = "\u001b[31m"
                     val reset = "\u001b[0m"
                     print(red + c + reset)
-                } else if (connectedToEdge.contains(p)) {
-                    val red = "\u001b[33m"
+                } else if (pointsInside.contains(p)) {
+                    val yellow = "\u001b[33m"
                     val reset = "\u001b[0m"
-                    print("$red.$reset")
+                    print("${yellow}I$reset")
                 } else {
                     print(".")
                 }
