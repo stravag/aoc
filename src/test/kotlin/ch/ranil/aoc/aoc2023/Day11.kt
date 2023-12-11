@@ -2,6 +2,7 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
 
 class Day11 : AbstractDay() {
@@ -18,28 +19,40 @@ class Day11 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(4, compute2(test2Input))
+        assertEquals(1030, compute2(testInput, offSet = 10 - 1))
+        assertEquals(8410, compute2(testInput, offSet = 100 - 1))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(702770569197, compute2(puzzleInput, offSet = 1000000 - 1))
     }
 
-    private fun compute1(input: List<String>): Int {
-        var xShift = 0
-        var yShift = 0
+    private fun compute1(input: List<String>): Long {
+        val galaxyDistances = getGalaxyDistances(input, offSet = 1)
+
+        return galaxyDistances.values.sum()
+    }
+
+    private fun compute2(input: List<String>, offSet: Long): Long {
+        val galaxyDistances = getGalaxyDistances(input, offSet)
+        return galaxyDistances.values.sum()
+    }
+
+    private fun getGalaxyDistances(input: List<String>, offSet: Long): MutableMap<GalaxyPair, Long> {
+        var xShift = 0L
+        var yShift = 0L
         val galaxies = mutableListOf<Galaxy>()
         input.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
-                if (c == '#') galaxies.add(Galaxy(galaxies.size + 1, Point(x + xShift, y + yShift)))
-                if (input.isColumnBlank(x)) xShift++ // empty column, shift to right
+                if (c == '#') galaxies.add(Galaxy(galaxies.size + 1, BigPoint(x + xShift, y + yShift)))
+                if (input.isColumnBlank(x)) xShift += offSet // empty column, shift to right
             }
-            if (s.isEmptySpace()) yShift++ // empty line, shift down
+            if (s.isEmptySpace()) yShift += offSet // empty line, shift down
             xShift = 0 // new line reset x shift
         }
 
-        val galaxyDistances = mutableMapOf<GalaxyPair, Int>()
+        val galaxyDistances = mutableMapOf<GalaxyPair, Long>()
         for (galaxy in galaxies) {
             val otherGalaxies = galaxies - galaxy
             for (otherGalaxy in otherGalaxies) {
@@ -49,8 +62,7 @@ class Day11 : AbstractDay() {
                 }
             }
         }
-
-        return galaxyDistances.values.sum()
+        return galaxyDistances
     }
 
     private fun List<String>.isColumnBlank(x: Int): Boolean {
@@ -61,13 +73,9 @@ class Day11 : AbstractDay() {
         return this.none { it == '#' }
     }
 
-    private fun compute2(input: List<String>): Int {
-        return input.count()
-    }
-
     private data class Galaxy(
         val num: Int,
-        val pos: Point,
+        val pos: BigPoint,
     )
 
     private data class GalaxyPair(
@@ -80,5 +88,9 @@ class Day11 : AbstractDay() {
         }
     }
 
-    private fun Collection<GalaxyPair>.flatten(): List<Galaxy> = flatMap { it.galaxies }
+    private data class BigPoint(val x: Long, val y: Long)
+
+    private fun BigPoint.distanceTo(other: BigPoint): Long {
+        return abs(other.x - x) + abs(other.y - y)
+    }
 }
