@@ -9,7 +9,6 @@ class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
     private var loopPositions = mutableSetOf<Point>()
-    private var startPipe = 'S'
 
     @Test
     fun part1Test() {
@@ -85,7 +84,6 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        startPipe = '|'
         assertEquals(0, compute2(puzzleInput))
     }
 
@@ -126,46 +124,6 @@ class Day10 : AbstractDay() {
 
         printMap(pointsInside)
         return pointsInside.count()
-    }
-
-    private fun findPathToEdge(
-        rootPoint: Point,
-    ): Set<Point> {
-        val seen = mutableSetOf(rootPoint)
-        val queue = mutableListOf(rootPoint)
-        while (queue.isNotEmpty()) {
-            val p = queue.removeFirst()
-            if (p.isEdgeOfMap()) {
-                return seen
-            }
-
-            val candidates = p.edges().flatMap { edge ->
-                if (loopPositions.contains(edge)) {
-                    // try ride along pipe
-                    var riding = edge
-                    if (edge.x == p.x && edge.y < p.y) { // north
-                        //while ()
-                    } else if (edge.x == p.x && edge.y > p.y) { // south
-
-                    } else if (edge.x > p.x && edge.y == p.y) { // west
-
-                    } else if (edge.x < p.x && edge.y == p.y) { // east
-
-                    }
-                    emptyList()
-                } else {
-                    listOf(edge)
-                }
-            }
-
-            candidates
-                .filterNot { seen.contains(it) }
-                .forEach {
-                    seen.add(it)
-                    queue.add(it)
-                }
-        }
-        return emptySet()
     }
 
     private fun traverseLoop(actionOnStep: (Point, Point) -> Unit) {
@@ -250,14 +208,9 @@ class Day10 : AbstractDay() {
             p = p.north()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> Unit
-                '-' -> crossings++
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideNorthSouth(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -271,14 +224,9 @@ class Day10 : AbstractDay() {
             p = p.south()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> Unit
-                '-' -> crossings++
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideNorthSouth(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -292,14 +240,9 @@ class Day10 : AbstractDay() {
             p = p.east()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> crossings++
-                '-' -> Unit
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideEastWest(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -313,18 +256,55 @@ class Day10 : AbstractDay() {
             p = p.west()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> crossings++
-                '-' -> Unit
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideEastWest(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
         return crossings.isEven()
+    }
+
+    private fun rideNorthSouth(
+        char: Char,
+        crossings: Int,
+        riding: Char?
+    ): Pair<Int, Char?> {
+        var crossings1 = crossings
+        var riding1 = riding
+        when (char) {
+            '|' -> Unit
+            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
+            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
+            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
+            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
+            '-' -> {
+                crossings1++
+                riding1 = null
+            }
+        }
+        return Pair(crossings1, riding1)
+    }
+
+    private fun rideEastWest(
+        char: Char,
+        crossings: Int,
+        riding: Char?
+    ): Pair<Int, Char?> {
+        var crossings1 = crossings
+        var riding1 = riding
+        when (char) {
+            '-' -> Unit
+            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
+            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
+            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
+            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
+            '|' -> {
+                crossings1++
+                riding1 = null
+            }
+        }
+        return Pair(crossings1, riding1)
     }
 
     private fun handleRiding(
@@ -342,14 +322,12 @@ class Day10 : AbstractDay() {
     }
 
     private fun getChar(pos: Point): Char {
-        val c = inputMap[pos.y][pos.x]
-        return if (c == 'S') startPipe else c
+        return inputMap[pos.y][pos.x]
     }
 
     private fun getCharCleanedUp(pos: Point): Char {
         return if (loopPositions.contains(pos)) {
-            val c = inputMap[pos.y][pos.x]
-            if (c == 'S') startPipe else c
+            inputMap[pos.y][pos.x]
         } else {
             '.'
         }
