@@ -8,6 +8,7 @@ class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
     private var loopPositions = mutableSetOf<Point>()
+    private var startPipe = 'S'
 
     @Test
     fun part1Test() {
@@ -26,6 +27,7 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
+        startPipe = '|'
         assertEquals(0, compute2(puzzleInput))
     }
 
@@ -88,8 +90,27 @@ class Day10 : AbstractDay() {
             if (p.isEdgeOfMap()) {
                 return seen
             }
-            p.edges()
-                .filterNot { loopPositions.contains(it) }
+
+            val candidates = p.edges().flatMap { edge ->
+                if (loopPositions.contains(edge)) {
+                    // try ride along pipe
+                    var riding = edge
+                    if (edge.x == p.x && edge.y < p.y) { // north
+                        //while ()
+                    } else if (edge.x == p.x && edge.y > p.y) { // south
+
+                    } else if (edge.x > p.x && edge.y == p.y) { // west
+
+                    } else if (edge.x < p.x && edge.y == p.y) { // east
+
+                    }
+                    emptyList()
+                } else {
+                    listOf(edge)
+                }
+            }
+
+            candidates
                 .filterNot { seen.contains(it) }
                 .forEach {
                     seen.add(it)
@@ -105,7 +126,8 @@ class Day10 : AbstractDay() {
 
         var prevA = start
         var prevB = start
-        var (posA, posB) = findStartConnectors(start)
+        val startConnectors = findStartConnectors(start)
+        var (posA, posB) = startConnectors
         do {
             actionOnStep(posA, posB)
             val nextA = posA.next(prevA)
@@ -247,7 +269,8 @@ class Day10 : AbstractDay() {
     }
 
     private fun getChar(pos: Point): Char {
-        return inputMap[pos.y][pos.x]
+        val c = inputMap[pos.y][pos.x]
+        return if (c == 'S') startPipe else c
     }
 
     private fun printMap(connectedToEdge: Collection<Point>) {
