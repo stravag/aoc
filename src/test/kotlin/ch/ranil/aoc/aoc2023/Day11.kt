@@ -13,7 +13,7 @@ class Day11 : AbstractDay() {
 
     @Test
     fun part1Puzzle() {
-        assertEquals(6701, compute1(puzzleInput))
+        assertEquals(9974721, compute1(puzzleInput))
     }
 
     @Test
@@ -32,19 +32,21 @@ class Day11 : AbstractDay() {
         val galaxies = mutableListOf<Galaxy>()
         input.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
-                if (c == '#') galaxies.add(Galaxy(galaxies.size, Point(x + xShift, y + yShift)))
+                if (c == '#') galaxies.add(Galaxy(galaxies.size + 1, Point(x + xShift, y + yShift)))
                 if (input.isColumnBlank(x)) xShift++ // empty column, shift to right
             }
             if (s.isEmptySpace()) yShift++ // empty line, shift down
             xShift = 0 // new line reset x shift
         }
 
-        val galaxyDistances = mutableMapOf<Set<Galaxy>, Int>()
+        val galaxyDistances = mutableMapOf<GalaxyPair, Int>()
         for (galaxy in galaxies) {
-            val otherGalaxies = galaxies - galaxy - galaxyDistances.keys.flatten().toSet()
+            val otherGalaxies = galaxies - galaxy
             for (otherGalaxy in otherGalaxies) {
-                val dist = galaxy.pos.distanceTo(otherGalaxy.pos)
-                galaxyDistances[setOf(galaxy, otherGalaxy)] = dist
+                if (!galaxyDistances.contains(GalaxyPair(galaxy, otherGalaxy))) {
+                    val dist = galaxy.pos.distanceTo(otherGalaxy.pos)
+                    galaxyDistances[GalaxyPair(galaxy, otherGalaxy)] = dist
+                }
             }
         }
 
@@ -59,7 +61,6 @@ class Day11 : AbstractDay() {
         return this.none { it == '#' }
     }
 
-
     private fun compute2(input: List<String>): Int {
         return input.count()
     }
@@ -69,4 +70,15 @@ class Day11 : AbstractDay() {
         val pos: Point,
     )
 
+    private data class GalaxyPair(
+        val galaxies: Set<Galaxy>,
+    ) {
+        constructor(a: Galaxy, b: Galaxy) : this(setOf(a, b))
+
+        override fun toString(): String {
+            return galaxies.joinToString("<->") { it.num.toString() }
+        }
+    }
+
+    private fun Collection<GalaxyPair>.flatten(): List<Galaxy> = flatMap { it.galaxies }
 }
