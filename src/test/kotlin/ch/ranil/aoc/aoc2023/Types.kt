@@ -27,11 +27,26 @@ fun Point.edges(): List<Point> {
     )
 }
 
+fun Point.distanceTo(other: Point): Int {
+    return abs(other.x - x) + abs(other.y - y)
+}
+
 class PointTest {
     @Test
     fun testEdgesAndAdjacent() {
         val center = Point(0, 0)
         assertTrue(center.edges().all { edge -> edge.isAdjacentTo(center) })
+    }
+
+    @Test
+    fun testDistance() {
+        val zero = Point(0, 0)
+        assertEquals(0, zero.distanceTo(zero))
+        assertEquals(1, zero.distanceTo(Point(1, 0)))
+        assertEquals(1, zero.distanceTo(Point(0, 1)))
+        assertEquals(1, zero.distanceTo(Point(-1, 0)))
+        assertEquals(1, zero.distanceTo(Point(0, -1)))
+        assertEquals(2, zero.distanceTo(Point(1, 1)))
     }
 
     @Test
