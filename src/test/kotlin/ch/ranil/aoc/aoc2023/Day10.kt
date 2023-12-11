@@ -250,14 +250,9 @@ class Day10 : AbstractDay() {
             p = p.north()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> Unit
-                '-' -> crossings++
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideNorthSouth(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -271,14 +266,9 @@ class Day10 : AbstractDay() {
             p = p.south()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> Unit
-                '-' -> crossings++
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideNorthSouth(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -292,14 +282,9 @@ class Day10 : AbstractDay() {
             p = p.east()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> crossings++
-                '-' -> Unit
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideEastWest(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
@@ -313,18 +298,55 @@ class Day10 : AbstractDay() {
             p = p.west()
             val char = getCharCleanedUp(p)
             if (!loopPositions.contains(p)) continue
-            when (char) {
-                '|' -> crossings++
-                '-' -> Unit
-                'L' -> riding = handleRiding('7', riding, char) { crossings++ }
-                'F' -> riding = handleRiding('J', riding, char) { crossings++ }
-                'J' -> riding = handleRiding('F', riding, char) { crossings++ }
-                '7' -> riding = handleRiding('L', riding, char) { crossings++ }
-            }
+            val pair = rideEastWest(char, crossings, riding)
+            crossings = pair.first
+            riding = pair.second
             println("Riding on $riding, crossings = $crossings")
         }
 
         return crossings.isEven()
+    }
+
+    private fun rideNorthSouth(
+        char: Char,
+        crossings: Int,
+        riding: Char?
+    ): Pair<Int, Char?> {
+        var crossings1 = crossings
+        var riding1 = riding
+        when (char) {
+            '|' -> Unit
+            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
+            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
+            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
+            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
+            '-' -> {
+                crossings1++
+                riding1 = null
+            }
+        }
+        return Pair(crossings1, riding1)
+    }
+
+    private fun rideEastWest(
+        char: Char,
+        crossings: Int,
+        riding: Char?
+    ): Pair<Int, Char?> {
+        var crossings1 = crossings
+        var riding1 = riding
+        when (char) {
+            '-' -> Unit
+            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
+            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
+            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
+            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
+            '|' -> {
+                crossings1++
+                riding1 = null
+            }
+        }
+        return Pair(crossings1, riding1)
     }
 
     private fun handleRiding(
