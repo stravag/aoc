@@ -2,13 +2,20 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
-import kotlin.math.abs
+import kotlin.math.max
 import kotlin.test.assertEquals
 
 class Day12 : AbstractDay() {
 
     @Test
-    fun part1Test() {
+    fun part1Simple() {
+        assertEquals(4, countArrangements(".??..??...?##. 1,1,3"))
+        assertEquals(1, countArrangements("????.#...#... 4,1,1"))
+        assertEquals(4, countArrangements("????.######..#####. 1,6,5"))
+    }
+
+    @Test
+    fun part1Complex() {
         assertEquals(1, countArrangements("???.### 1,1,3"))
         assertEquals(4, countArrangements(".??..??...?##. 1,1,3"))
         assertEquals(1, countArrangements("?#?#?#?#?#?#?#? 1,3,1,6"))
@@ -41,22 +48,32 @@ class Day12 : AbstractDay() {
     }
 
     private fun countArrangements(s: String): Int {
-        val (puzzle, groupCounts) = parse(s)
+        val (puzzle, groupSizes) = parse(s)
+        val knownPuzzleGroups = puzzle.split("\\.+".toRegex()).filter { it.isNotBlank() }
 
-        getGroupCounts(puzzle)
+        // simple case
+        if (knownPuzzleGroups.size == groupSizes.size) {
+            var arrangements = 1
+            for (i in groupSizes.indices) {
+                val groupSize = groupSizes[i]
+                val group = knownPuzzleGroups[i]
+                val fixedGroupSize = group.count { it == '#' }
+                val variableGroupSize = group.length - fixedGroupSize
+                if (variableGroupSize > 0) {
+                    val groupArrangements = variableGroupSize / (groupSize - fixedGroupSize)
+                    arrangements *= groupArrangements
+                }
+            }
+            return arrangements
+        }
+
         return 0
-    }
-
-    private fun getGroupCounts(puzzle: String): List<Int> {
-        val groups = Regex("(#+)").find(puzzle)?.groupValues.orEmpty().drop(1)
-        puzzle
-        return emptyList()
     }
 
     private fun parse(s: String): Pair<String, List<Int>> {
         val (puzzle, groups) = s.split(" ")
-        val groupCounts = groups.split(",").map { it.toInt() }
+        val groupSizes = groups.split(",").map { it.toInt() }
 
-        return puzzle to groupCounts
+        return puzzle to groupSizes
     }
 }
