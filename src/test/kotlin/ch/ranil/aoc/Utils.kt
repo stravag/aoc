@@ -6,9 +6,20 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.test.assertEquals
 
-fun <T> T.alsoPrint(): T {
-    println(this)
-    return this
+enum class PrintColor(val code: String) {
+    RED("\u001b[31m"),
+    GREEN("\u001b[32m"),
+    YELLOW("\u001b[33m")
+}
+
+fun <T> printColor(color: PrintColor, v: T) {
+    val reset = "\u001b[0m"
+    print(color.code + v + reset)
+}
+
+fun <T> printlnColor(color: PrintColor, v: T) {
+    printColor(color, v)
+    println()
 }
 
 fun LongRange.rangeOverlap(other: LongRange): LongRange {
