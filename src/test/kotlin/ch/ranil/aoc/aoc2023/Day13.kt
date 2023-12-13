@@ -14,7 +14,7 @@ class Day13 : AbstractDay() {
     @Test
     fun part1Test2() {
         assertEquals(
-            0,
+            1400,
             compute1(
                 """
             #....#.##
@@ -39,7 +39,7 @@ class Day13 : AbstractDay() {
 
     @Test
     fun part1Puzzle() {
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(37381, compute1(puzzleInput))
     }
 
     @Test
@@ -61,21 +61,27 @@ class Day13 : AbstractDay() {
     }
 
     private fun Pattern.findReflectionPoint(): Int {
+        fun isReflectionPointCorrect(reflectionPoint: Int, lines: List<String>): Boolean {
+            // check outwards to see if everything reflects
+            var i = 1
+            while (reflectionPoint - i >= 0 && reflectionPoint + i + 1 < lines.size) {
+                val q1 = lines[reflectionPoint - i]
+                val q2 = lines[reflectionPoint + i + 1]
+                if (q1 != q2) return false // not a perfect reflection
+                i++
+            }
+            return true
+        }
+
         fun scan(lines: List<String>): Int {
             var reflectionPoint = 0
             while (reflectionPoint + 1 < lines.size) {
                 val p1 = lines[reflectionPoint]
                 val p2 = lines[reflectionPoint + 1]
                 if (p1 == p2) {
-                    // check outwards to see if everything reflects
-                    var i = 1
-                    while (reflectionPoint - i >= 0 && reflectionPoint + i + 1 < lines.size) {
-                        val q1 = lines[reflectionPoint - i]
-                        val q2 = lines[reflectionPoint + i + 1]
-                        if (q1 != q2) return 0 // not a perfect reflection
-                        i++
+                    if (isReflectionPointCorrect(reflectionPoint, lines)) {
+                        return reflectionPoint + 1
                     }
-                    return reflectionPoint + 1
                 }
                 reflectionPoint++
             }
