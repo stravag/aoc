@@ -19,6 +19,16 @@ class Day12 : AbstractDay() {
     }
 
     @Test
+    fun part1TestOptimized() {
+        assertEquals(1, countArrangementsOptimized("???.### 1,1,3"))
+        assertEquals(4, countArrangementsOptimized(".??..??...?##. 1,1,3"))
+        assertEquals(1, countArrangementsOptimized("?#?#?#?#?#?#?#? 1,3,1,6"))
+        assertEquals(1, countArrangementsOptimized("????.#...#... 4,1,1"))
+        assertEquals(4, countArrangementsOptimized("????.######..#####. 1,6,5"))
+        assertEquals(10, countArrangementsOptimized("?###???????? 3,2,1"))
+    }
+
+    @Test
     @Ignore("brute-forced")
     fun part1Puzzle() {
         assertEquals(7169, compute1(puzzleInput))
@@ -80,34 +90,39 @@ class Day12 : AbstractDay() {
     private fun countArrangementsOptimized(s: String): Int {
         val (puzzle, groupSizes) = parse(s)
         val puzzleArray = puzzle.toMutableList()
+        val hashesMissing = groupSizes.sum() - puzzle.count { it == '#' }
         val dotsMissing = groupSizes.size - puzzle.split("\\.+".toRegex()).count { it.isNotBlank() }
-        val possibleDotPositions = puzzle
+        val possiblePositionsForRequiredDots = puzzle
             .mapIndexedNotNull { index, c ->
                 if (c == '?') index else null
             }
             .filter { variablePos ->
                 if (dotsMissing > 0) {
+                    // needed dots cannot be placed at edge of puzzle
+                    // or next to an existing dot
                     val precededByDot = puzzle.getOrNull(variablePos - 1) == '.'
                     val followedByDot = puzzle.getOrNull(variablePos + 1) == '.'
                     !precededByDot && !followedByDot && variablePos != 0 && variablePos != (puzzle.length - 1)
                 } else {
-                    // if the groups are already split correctly any variable could be a dot
+                    // if the groups are already split correctly
+                    // any variable could be a dot
                     true
                 }
             }
 
         /**
          * better solution:
-         * - always have at least `dotCountMissing` dots
-         * - mandatory dots need at least a gap of 1 character
+         * - always have at least `dotsMissing` dots
+         * - always have at least `hashesMissing` hashes
+         * - permutate that
          */
-        val bruteForcePermutations = 1 shl (possibleDotPositions.size - 1)
+        val bruteForcePermutations = 1 shl (possiblePositionsForRequiredDots.size - 1)
         var arrangements = 0
         println("$bruteForcePermutations permutations in... ")
         val (_, duration) = measureTimedValue {
             repeat(bruteForcePermutations) { iteration ->
-                val variableAttempt = iteration.toDotHashRepresentation(possibleDotPositions.size)
-                possibleDotPositions.forEachIndexed { attemptPosition, puzzleIndex ->
+                val variableAttempt = iteration.toDotHashRepresentation(possiblePositionsForRequiredDots.size)
+                possiblePositionsForRequiredDots.forEachIndexed { attemptPosition, puzzleIndex ->
                     puzzleArray[puzzleIndex] = variableAttempt[attemptPosition]
                 }
                 if (isValidArrangement(puzzleArray, groupSizes)) {
