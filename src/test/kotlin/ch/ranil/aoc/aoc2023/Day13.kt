@@ -1,11 +1,8 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.isEven
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
-import kotlin.time.measureTimedValue
 
 class Day13 : AbstractDay() {
 
@@ -17,7 +14,8 @@ class Day13 : AbstractDay() {
     @Test
     fun part1Test2() {
         assertEquals(
-            0, compute1(
+            0,
+            compute1(
                 """
             #....#.##
             ...##.#.#
@@ -34,8 +32,8 @@ class Day13 : AbstractDay() {
             ...##.#.#
             #...##.##
             #...##.##
-        """.trimIndent().lines()
-            )
+                """.trimIndent().lines(),
+            ),
         )
     }
 
@@ -97,7 +95,6 @@ class Day13 : AbstractDay() {
 
     fun compute2(input: List<String>): Long {
         input.forEach {
-
         }
         return 0
     }
@@ -114,7 +111,6 @@ class Day13 : AbstractDay() {
         }
         return patterns
     }
-
 }
 
 private typealias Pattern = List<String>
