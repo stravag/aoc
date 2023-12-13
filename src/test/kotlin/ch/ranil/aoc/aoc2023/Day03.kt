@@ -38,7 +38,7 @@ class Day03 : AbstractDay() {
             .filter { it.char == '*' }
             .mapNotNull { symbol ->
                 val numbersForSymbol = symbol.position
-                    .edges()
+                    .edges(::Point)
                     .mapNotNull { partNumberLookup[it] }
                     .distinct()
                 if (numbersForSymbol.size == 2) {

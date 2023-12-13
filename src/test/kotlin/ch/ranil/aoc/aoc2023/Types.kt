@@ -5,27 +5,32 @@ import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-data class Point(val x: Int, val y: Int) {
+interface Coordinate {
+    val x: Int
+    val y: Int
+}
+
+data class Point(override val x: Int, override val y: Int) : Coordinate {
     override fun toString(): String = "($x,$y)"
 }
 
-fun Point.isAdjacentTo(other: Point): Boolean {
+fun Coordinate.isAdjacentTo(other: Point): Boolean {
     return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
 }
 
-fun Point.edges(): List<Point> {
+fun <T> Coordinate.edges(coordinateConstructor: (Int, Int) -> T): List<T> {
     return listOf(
         // Above
-        Point(x - 1, y - 1),
-        Point(x, y - 1),
-        Point(x + 1, y - 1),
+        coordinateConstructor(x - 1, y - 1),
+        coordinateConstructor(x, y - 1),
+        coordinateConstructor(x + 1, y - 1),
         // Side
-        Point(x - 1, y),
-        Point(x + 1, y),
+        coordinateConstructor(x - 1, y),
+        coordinateConstructor(x + 1, y),
         // Below
-        Point(x - 1, y + 1),
-        Point(x, y + 1),
-        Point(x + 1, y + 1),
+        coordinateConstructor(x - 1, y + 1),
+        coordinateConstructor(x, y + 1),
+        coordinateConstructor(x + 1, y + 1),
     )
 }
 
@@ -37,7 +42,7 @@ class PointTest {
     @Test
     fun testEdgesAndAdjacent() {
         val center = Point(0, 0)
-        assertTrue(center.edges().all { edge -> edge.isAdjacentTo(center) })
+        assertTrue(center.edges(::Point).all { edge -> edge.isAdjacentTo(center) })
     }
 
     @Test
@@ -53,6 +58,6 @@ class PointTest {
 
     @Test
     fun testEdgesUnique() {
-        assertEquals(8, Point(0, 0).edges().distinct().size)
+        assertEquals(8, Point(0, 0).edges(::Point).distinct().size)
     }
 }

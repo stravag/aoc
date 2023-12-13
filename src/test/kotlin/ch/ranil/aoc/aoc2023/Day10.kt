@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
-    private var loopPositions = mutableSetOf<Point>()
+    private lateinit var loopPositions: Map<Point, Char>
 
     @Test
     fun part1Test() {
@@ -44,6 +44,20 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part2Test2() {
+        /*
+
+             F----7F7F7F7F-7
+             |F--7||||||||FJ
+             || FJ||||||||L7
+            FJL7L7LJLJ||LJIL-7
+            L--J L7   LJF7F-7L7
+                F-JIIF7FJ|L7L7L7
+                L7IF7||L7|IL7L7|
+                 |FJLJ|FJ|F7| LJ
+                FJL-7 || ||||
+                L---J LJ LJLJ
+
+         */
         assertEquals(
             8, compute2(
                 """
@@ -89,12 +103,22 @@ class Day10 : AbstractDay() {
 
     private fun compute1(input: List<String>): Int {
         inputMap = input
-        loopPositions = mutableSetOf()
 
-        var distance = -1
-        traverseLoop { _, _ ->
+        var distance = 1
+        val start = findStart()
+        var prevA = start
+        var prevB = start
+        val startConnectors = findStartConnectors(start)
+        var (posA, posB) = startConnectors
+        do {
+            val nextA = posA.next(prevA)
+            val nextB = posB.next(prevB)
+            prevA = posA
+            prevB = posB
+            posA = nextA
+            posB = nextB
             distance++
-        }
+        } while (posA != posB)
 
         return distance
     }
@@ -107,9 +131,7 @@ class Day10 : AbstractDay() {
         // if pipe ends face opposite directions: no crossing (F--J / L--7)
         // replace S with actual pipe piece (hope note necessary)
         inputMap = input
-        loopPositions = mutableSetOf()
-
-        traverseLoop { a, b -> loopPositions.addAll(listOf(a, b)) }
+        loopPositions = traverseLoop()
 
         val candidatePositions = inputMap.flatMapIndexed { y, s ->
             s.mapIndexed { x, _ ->
@@ -117,25 +139,30 @@ class Day10 : AbstractDay() {
             }
         }
 
-        val pointsInside = (candidatePositions - loopPositions)
+        val pointsInside = (candidatePositions - loopPositions.keys)
             .filterNot { p ->
                 isConnectedToEdge(p)
             }
 
+        println("------------------------------------------------------------------------------------------")
         printMap(pointsInside)
+        println("------------------------------------------------------------------------------------------")
         return pointsInside.count()
     }
 
-    private fun traverseLoop(actionOnStep: (Point, Point) -> Unit) {
+    private fun traverseLoop(): Map<Point, Char> {
+        val loopPositions = mutableMapOf<Point, Char>()
         val start = findStart()
-        actionOnStep(start, start)
 
         var prevA = start
         var prevB = start
         val startConnectors = findStartConnectors(start)
+        val startPipe = resolveStartPipe(start, startConnectors)
+        loopPositions[start] = startPipe
         var (posA, posB) = startConnectors
         do {
-            actionOnStep(posA, posB)
+            loopPositions[posA] = getChar(posA)
+            loopPositions[posB] = getChar(posB)
             val nextA = posA.next(prevA)
             val nextB = posB.next(prevB)
             prevA = posA
@@ -143,7 +170,9 @@ class Day10 : AbstractDay() {
             posA = nextA
             posB = nextB
         } while (posA != posB)
-        actionOnStep(posA, posB)
+        loopPositions[posA] = getChar(posA)
+        loopPositions[posB] = getChar(posB)
+        return loopPositions
     }
 
     private fun findStart(): Point {
@@ -160,8 +189,8 @@ class Day10 : AbstractDay() {
         return if (a == prev) b else a
     }
 
-    private fun findConnectingPoints(pos: Point): Connections? {
-        return when (getChar(pos)) {
+    private fun findConnectingPoints(pos: Point, charResolver: (Point) -> Char = ::getChar): Connections? {
+        return when (charResolver(pos)) {
             '|' -> Connections(pos.north(), pos.south())
             '-' -> Connections(pos.east(), pos.west())
             'L' -> Connections(pos.north(), pos.east())
@@ -172,9 +201,17 @@ class Day10 : AbstractDay() {
         }
     }
 
+    private fun resolveStartPipe(start: Point, startConnections: Connections): Char {
+        return listOf('|', '-', 'L', 'J', '7', 'F').single { c ->
+            val points = requireNotNull(findConnectingPoints(start) { c })
+            startConnections.anyIs(points.a) && startConnections.anyIs(points.b)
+        }
+    }
+
+
     private fun findStartConnectors(start: Point): Connections {
         val startConnections = start
-            .edges()
+            .edges(::Point)
             .filter { edge -> edge.isContainedInMap() }
             .filter { edge ->
                 findConnectingPoints(edge)?.anyIs(start) ?: false
@@ -192,7 +229,7 @@ class Day10 : AbstractDay() {
     }
 
     private fun Point.isEdgeOfMap(): Boolean {
-        return edges().any { !it.isContainedInMap() }
+        return edges(::Point).any { !it.isContainedInMap() }
     }
 
     private fun isConnectedToEdge(pos: Point): Boolean {
@@ -326,27 +363,24 @@ class Day10 : AbstractDay() {
     }
 
     private fun getCharCleanedUp(pos: Point): Char {
-        return if (loopPositions.contains(pos)) {
-            inputMap[pos.y][pos.x]
-        } else {
-            '.'
-        }
+        return loopPositions[pos] ?: '.'
     }
 
     private fun printMap(pointsInside: Collection<Point>) {
         inputMap.forEachIndexed { y, s ->
-            s.forEachIndexed { x, c ->
+            s.forEachIndexed { x, _ ->
                 val p = Point(x, y)
-                if (loopPositions.contains(p)) {
+                val pipe = loopPositions[p]
+                if (pipe != null) {
                     val red = "\u001b[31m"
                     val reset = "\u001b[0m"
-                    print(red + c + reset)
+                    print(red + pipe + reset)
                 } else if (pointsInside.contains(p)) {
                     val yellow = "\u001b[33m"
                     val reset = "\u001b[0m"
                     print("${yellow}I$reset")
                 } else {
-                    print(".")
+                    print(" ")
                 }
             }
             println()
@@ -361,4 +395,10 @@ class Day10 : AbstractDay() {
     private data class Connections(val a: Point, val b: Point) {
         fun anyIs(pos: Point) = a == pos || b == pos
     }
+
+    private data class MapPoint(
+        override val x: Int,
+        override val y: Int,
+        val value: Char
+    ) : Coordinate
 }
