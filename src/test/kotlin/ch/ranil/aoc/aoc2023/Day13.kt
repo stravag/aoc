@@ -100,9 +100,7 @@ class Day13 : AbstractDay() {
     }
 
     fun compute2(input: List<String>): Long {
-        input.forEach {
-        }
-        return 0
+        TODO()
     }
 
     private fun splitPatterns(input: List<String>): List<Pattern> {

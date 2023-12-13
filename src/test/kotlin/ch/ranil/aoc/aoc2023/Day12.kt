@@ -2,14 +2,13 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.time.measureTimedValue
 
 class Day12 : AbstractDay() {
 
     @Test
-    fun part1Test() {
+    fun part1TestOptimized() {
         assertEquals(1, countArrangements("???.### 1,1,3"))
         assertEquals(4, countArrangements(".??..??...?##. 1,1,3"))
         assertEquals(1, countArrangements("?#?#?#?#?#?#?#? 1,3,1,6"))
@@ -19,29 +18,18 @@ class Day12 : AbstractDay() {
     }
 
     @Test
-    fun part1TestOptimized() {
-        assertEquals(1, countArrangementsOptimized("???.### 1,1,3"))
-        assertEquals(4, countArrangementsOptimized(".??..??...?##. 1,1,3"))
-        assertEquals(1, countArrangementsOptimized("?#?#?#?#?#?#?#? 1,3,1,6"))
-        assertEquals(1, countArrangementsOptimized("????.#...#... 4,1,1"))
-        assertEquals(4, countArrangementsOptimized("????.######..#####. 1,6,5"))
-        assertEquals(10, countArrangementsOptimized("?###???????? 3,2,1"))
-    }
-
-    @Test
-    @Ignore("brute-forced")
     fun part1Puzzle() {
         assertEquals(7169, compute1(puzzleInput))
     }
 
     @Test
     fun part2Test() {
-        assertEquals(1, countArrangementsOptimized("???.### 1,1,3".unfold()))
-        assertEquals(16384, countArrangementsOptimized(".??..??...?##. 1,1,3".unfold()))
-        assertEquals(1, countArrangementsOptimized("?#?#?#?#?#?#?#? 1,3,1,6".unfold()))
-        assertEquals(16, countArrangementsOptimized("????.#...#... 4,1,1".unfold()))
-        assertEquals(2500, countArrangementsOptimized("????.######..#####. 1,6,5".unfold()))
-        assertEquals(506250, countArrangementsOptimized("?###???????? 3,2,1".unfold()))
+        assertEquals(16384, countArrangements(".??..??...?##. 1,1,3".unfold()))
+        assertEquals(1, countArrangements("???.### 1,1,3".unfold()))
+        assertEquals(1, countArrangements("?#?#?#?#?#?#?#? 1,3,1,6".unfold()))
+        assertEquals(16, countArrangements("????.#...#... 4,1,1".unfold()))
+        assertEquals(2500, countArrangements("????.######..#####. 1,6,5".unfold()))
+        assertEquals(506250, countArrangements("?###???????? 3,2,1".unfold()))
     }
 
     @Test
@@ -56,25 +44,23 @@ class Day12 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
-        input.forEach {
-
-        }
-        return 0
+        TODO()
     }
 
     private fun countArrangements(s: String): Int {
         val (puzzle, groupSizes) = parse(s)
         val puzzleArray = puzzle.toMutableList()
+
+        val hashesMissing = groupSizes.sum() - puzzle.count { it == '#' }
         val variablePositions = puzzle.mapIndexedNotNull { index, c ->
             if (c == '?') index else null
         }
 
-        val bruteForcePermutations = 1 shl (variablePositions.size)
         var arrangements = 0
-        println("$bruteForcePermutations permutations in... ")
+        val permutations = generatePermutations(variablePositions.size, hashesMissing)
+        println("${permutations.size} permutations in... ")
         val (_, duration) = measureTimedValue {
-            repeat(bruteForcePermutations) { iteration ->
-                val variableAttempt = iteration.toDotHashRepresentation(variablePositions.size)
+            permutations.forEach { variableAttempt ->
                 variablePositions.forEachIndexed { attemptPosition, puzzleIndex ->
                     puzzleArray[puzzleIndex] = variableAttempt[attemptPosition]
                 }
@@ -87,51 +73,24 @@ class Day12 : AbstractDay() {
         return arrangements
     }
 
-    private fun countArrangementsOptimized(s: String): Int {
-        val (puzzle, groupSizes) = parse(s)
-        val puzzleArray = puzzle.toMutableList()
-        val hashesMissing = groupSizes.sum() - puzzle.count { it == '#' }
-        val dotsMissing = groupSizes.size - puzzle.split("\\.+".toRegex()).count { it.isNotBlank() }
-        val possiblePositionsForRequiredDots = puzzle
-            .mapIndexedNotNull { index, c ->
-                if (c == '?') index else null
-            }
-            .filter { variablePos ->
-                if (dotsMissing > 0) {
-                    // needed dots cannot be placed at edge of puzzle
-                    // or next to an existing dot
-                    val precededByDot = puzzle.getOrNull(variablePos - 1) == '.'
-                    val followedByDot = puzzle.getOrNull(variablePos + 1) == '.'
-                    !precededByDot && !followedByDot && variablePos != 0 && variablePos != (puzzle.length - 1)
-                } else {
-                    // if the groups are already split correctly
-                    // any variable could be a dot
-                    true
-                }
-            }
+    private fun generatePermutations(numberOfVariables: Int, hashCount: Int): List<String> {
+        val permutations = mutableListOf<String>()
 
-        /**
-         * better solution:
-         * - always have at least `dotsMissing` dots
-         * - always have at least `hashesMissing` hashes
-         * - permutate that
-         */
-        val bruteForcePermutations = 1 shl (possiblePositionsForRequiredDots.size - 1)
-        var arrangements = 0
-        println("$bruteForcePermutations permutations in... ")
-        val (_, duration) = measureTimedValue {
-            repeat(bruteForcePermutations) { iteration ->
-                val variableAttempt = iteration.toDotHashRepresentation(possiblePositionsForRequiredDots.size)
-                possiblePositionsForRequiredDots.forEachIndexed { attemptPosition, puzzleIndex ->
-                    puzzleArray[puzzleIndex] = variableAttempt[attemptPosition]
-                }
-                if (isValidArrangement(puzzleArray, groupSizes)) {
-                    arrangements++
-                }
+        fun permutations(current: String, hashesLeft: Int, dotsLeft: Int) {
+            if (current.length == numberOfVariables) {
+                permutations.add(current)
+                return
+            }
+            if (hashesLeft > 0) {
+                permutations("$current#", hashesLeft - 1, dotsLeft)
+            }
+            if (dotsLeft > 0) {
+                permutations("$current.", hashesLeft, dotsLeft - 1)
             }
         }
-        println("... $duration")
-        return arrangements
+
+        permutations("", hashCount, numberOfVariables - hashCount)
+        return permutations
     }
 
     private fun isValidArrangement(puzzle: List<Char>, groupSizes: List<Int>): Boolean {
@@ -150,14 +109,6 @@ class Day12 : AbstractDay() {
         return isValidArrangement
     }
 
-    private fun Int.toDotHashRepresentation(size: Int): String {
-        val binaryString = Integer.toBinaryString(this).padStart(size, '0')
-        val springString = binaryString
-            .replace('1', '.')
-            .replace('0', '#')
-        return springString
-    }
-
     private fun parse(s: String): Pair<String, List<Int>> {
         val (puzzle, groups) = s.split(" ")
         val groupSizes = groups.split(",").map { it.toInt() }
@@ -172,4 +123,5 @@ class Day12 : AbstractDay() {
         val unfoldedGroupSizes = List(5) { groups }.joinToString(",")
         return "$unfoldedPuzzle $unfoldedGroupSizes"
     }
+
 }
