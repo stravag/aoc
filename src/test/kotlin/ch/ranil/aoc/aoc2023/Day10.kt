@@ -5,7 +5,6 @@ import ch.ranil.aoc.isEven
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class Day10 : AbstractDay() {
 
@@ -268,122 +267,47 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     }
 
     private fun isConnectedToEdge(pos: Point, loop: Map<Point, Char>): Boolean {
-        var crossings = 0
-        var p: Point
-        var riding: Char?
-
-        p = pos
-        riding = null
-        while (!p.isEdgeOfMap()) {
-            p = p.north()
-            val char = getCharCleanedUp(p, loop)
-            if (!loop.contains(p)) continue
-            val (newCrossings, newRiding) = rideNorthSouth(char, crossings, riding)
-            crossings = newCrossings
-            riding = newRiding
-        }
-        if (crossings.isEven()) return true
-
-        p = pos
-        crossings = 0
-        riding = null
-        while (!p.isEdgeOfMap()) {
-            p = p.south()
-            val char = getCharCleanedUp(p, loop)
-            if (!loop.contains(p)) continue
-            val (newCrossings, newRiding) = rideNorthSouth(char, crossings, riding)
-            crossings = newCrossings
-            riding = newRiding
-        }
-        if (crossings.isEven()) return true
-
-        crossings = 0
-        p = pos
-        riding = null
-        while (!p.isEdgeOfMap()) {
-            p = p.east()
-            val char = getCharCleanedUp(p, loop)
-            if (!loop.contains(p)) continue
-            val (newCrossings, newRiding) = rideEastWest(char, crossings, riding)
-            crossings = newCrossings
-            riding = newRiding
-        }
-        if (crossings.isEven()) return true
-
-        crossings = 0
-        p = pos
-        riding = null
-        while (!p.isEdgeOfMap()) {
-            p = p.west()
-            val char = getCharCleanedUp(p, loop)
-            if (!loop.contains(p)) continue
-            val (newCrossings, newRiding) = rideEastWest(char, crossings, riding)
-            crossings = newCrossings
-            riding = newRiding
-        }
-        return crossings.isEven()
-    }
-
-    private fun rideNorthSouth(
-        currentlyOn: Char,
-        crossings: Int,
-        startedOn: Char?
-    ): Pair<Int, Char?> {
-        return when (currentlyOn) {
-            '|' -> crossings to startedOn
-            '-' -> crossings + 1 to null
-            else -> ride(currentlyOn, crossings, startedOn)
-        }
-    }
-
-    private fun rideEastWest(
-        currentlyOn: Char,
-        crossings: Int,
-        startedOn: Char?
-    ): Pair<Int, Char?> {
-        return when (currentlyOn) {
-            '-' -> crossings to startedOn
-            '|' -> crossings + 1 to null
-            else -> ride(currentlyOn, crossings, startedOn)
-        }
-    }
-
-    private fun ride(
-        currentlyOn: Char,
-        crossings: Int,
-        startedOn: Char?
-    ): Pair<Int, Char?> {
-        val crossedLoop = when (currentlyOn) {
-            'L' -> startedOn == '7'
-            'F' -> startedOn == 'J'
-            'J' -> startedOn == 'F'
-            '7' -> startedOn == 'L'
-            else -> throw IllegalArgumentException("something went wrong")
-        }
-
-        return if (crossedLoop) {
-            crossings + 1 to null
-        } else {
-            if (startedOn == null) {
-                crossings to currentlyOn
-            } else {
-                crossings to null
+        fun isConnectedToEdge(wall: Char, slip: Char, step: (Point) -> Point): Unit? {
+            var crossings = 0
+            var p = pos
+            var riding: Char? = null
+            while (!p.isEdgeOfMap()) {
+                p = step(p)
+                val char = getCharCleanedUp(p, loop)
+                if (!loop.contains(p)) continue
+                val (newCrossings, newRiding) = when (char) {
+                    slip -> crossings to riding
+                    wall -> crossings + 1 to null
+                    else -> {
+                        val crossedLoop = when (char) {
+                            'L' -> riding == '7'
+                            'F' -> riding == 'J'
+                            'J' -> riding == 'F'
+                            '7' -> riding == 'L'
+                            else -> throw IllegalArgumentException("something went wrong")
+                        }
+                        if (crossedLoop) {
+                            crossings + 1 to null
+                        } else {
+                            if (riding == null) {
+                                crossings to char
+                            } else {
+                                crossings to null
+                            }
+                        }
+                    }
+                }
+                crossings = newCrossings
+                riding = newRiding
             }
+            return if (crossings.isEven()) null else Unit
         }
-    }
 
-    private fun handleRiding(
-        matchingCrossing: Char,
-        riding: Char?,
-        char: Char,
-        increaseCrossings: () -> Unit
-    ) = if (riding == matchingCrossing) {
-        // rode up to a crossing
-        increaseCrossings()
-        null
-    } else {
-        // continue riding
-        char
+        isConnectedToEdge(wall = '-', slip = '|') { it.north() } ?: return true
+        isConnectedToEdge(wall = '-', slip = '|') { it.south() } ?: return true
+        isConnectedToEdge(wall = '|', slip = '-') { it.east() } ?: return true
+        isConnectedToEdge(wall = '|', slip = '-') { it.west() } ?: return true
+        return false
     }
 
     private fun getChar(pos: Point): Char {
@@ -423,10 +347,4 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     private data class Connections(val a: Point, val b: Point) {
         fun anyIs(pos: Point) = a == pos || b == pos
     }
-
-    private data class MapPoint(
-        override val x: Int,
-        override val y: Int,
-        val value: Char
-    ) : Coordinate
 }
