@@ -4,11 +4,12 @@ import ch.ranil.aoc.AbstractDay
 import ch.ranil.aoc.isEven
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class Day10 : AbstractDay() {
 
     private var inputMap = emptyList<String>()
-    private lateinit var loopPositions: Map<Point, Char>
 
     @Test
     fun part1Test() {
@@ -97,8 +98,42 @@ class Day10 : AbstractDay() {
     }
 
     @Test
+    fun part2Test4() {
+        inputMap = """
+F-7
+| |               
+L-J
+        """.trimIndent().lines()
+
+        val loopPoints = inputMap.flatMapIndexed { y, line ->
+            line.mapIndexedNotNull { x, c ->
+                if (c != ' ') Point(x, y) to c else null
+            }
+        }.toMap()
+
+        assertFalse(isConnectedToEdge(Point(1, 1), loopPoints))
+    }
+
+    @Test
+    fun part2Test5() {
+        inputMap = """
+---------------------------------------------------------------------------------------------------------------------
+L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJL------JLJF7L-JF-------7F7F7|L----7LJ               
+---------------------------------------------------------------------------------------------------------------------
+        """.trimIndent().lines()
+
+        val loopPoints = inputMap.flatMapIndexed { y, line ->
+            line.mapIndexedNotNull { x, c ->
+                if (c != ' ') Point(x, y) to c else null
+            }
+        }.toMap()
+
+        assertFalse(isConnectedToEdge(Point(66, 1), loopPoints))
+    }
+
+    @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(303, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -131,7 +166,7 @@ class Day10 : AbstractDay() {
         // if pipe ends face opposite directions: no crossing (F--J / L--7)
         // replace S with actual pipe piece (hope note necessary)
         inputMap = input
-        loopPositions = traverseLoop()
+        val loop = traverseLoop()
 
         val candidatePositions = inputMap.flatMapIndexed { y, s ->
             s.mapIndexed { x, _ ->
@@ -139,13 +174,13 @@ class Day10 : AbstractDay() {
             }
         }
 
-        val pointsInside = (candidatePositions - loopPositions.keys)
+        val pointsInside = (candidatePositions - loop.keys)
             .filterNot { p ->
-                isConnectedToEdge(p)
+                isConnectedToEdge(p, loop)
             }
 
         println("------------------------------------------------------------------------------------------")
-        printMap(pointsInside)
+        printMap(pointsInside, loop)
         println("------------------------------------------------------------------------------------------")
         return pointsInside.count()
     }
@@ -232,116 +267,109 @@ class Day10 : AbstractDay() {
         return edges(::Point).any { !it.isContainedInMap() }
     }
 
-    private fun isConnectedToEdge(pos: Point): Boolean {
-        println("Counting loop crossings for $pos")
+    private fun isConnectedToEdge(pos: Point, loop: Map<Point, Char>): Boolean {
         var crossings = 0
         var p: Point
         var riding: Char?
 
         p = pos
         riding = null
-        println("Riding north")
         while (!p.isEdgeOfMap()) {
             p = p.north()
-            val char = getCharCleanedUp(p)
-            if (!loopPositions.contains(p)) continue
-            val pair = rideNorthSouth(char, crossings, riding)
-            crossings = pair.first
-            riding = pair.second
-            println("Riding on $riding, crossings = $crossings")
+            val char = getCharCleanedUp(p, loop)
+            if (!loop.contains(p)) continue
+            val (newCrossings, newRiding) = rideNorthSouth(char, crossings, riding)
+            crossings = newCrossings
+            riding = newRiding
         }
-
         if (crossings.isEven()) return true
 
         p = pos
         crossings = 0
         riding = null
-        println("Riding south")
         while (!p.isEdgeOfMap()) {
             p = p.south()
-            val char = getCharCleanedUp(p)
-            if (!loopPositions.contains(p)) continue
-            val pair = rideNorthSouth(char, crossings, riding)
-            crossings = pair.first
-            riding = pair.second
-            println("Riding on $riding, crossings = $crossings")
+            val char = getCharCleanedUp(p, loop)
+            if (!loop.contains(p)) continue
+            val (newCrossings, newRiding) = rideNorthSouth(char, crossings, riding)
+            crossings = newCrossings
+            riding = newRiding
         }
-
         if (crossings.isEven()) return true
 
         crossings = 0
         p = pos
         riding = null
-        println("Riding east")
         while (!p.isEdgeOfMap()) {
             p = p.east()
-            val char = getCharCleanedUp(p)
-            if (!loopPositions.contains(p)) continue
-            val pair = rideEastWest(char, crossings, riding)
-            crossings = pair.first
-            riding = pair.second
-            println("Riding on $riding, crossings = $crossings")
+            val char = getCharCleanedUp(p, loop)
+            if (!loop.contains(p)) continue
+            val (newCrossings, newRiding) = rideEastWest(char, crossings, riding)
+            crossings = newCrossings
+            riding = newRiding
         }
-
         if (crossings.isEven()) return true
 
         crossings = 0
         p = pos
         riding = null
-        println("Riding west")
         while (!p.isEdgeOfMap()) {
             p = p.west()
-            val char = getCharCleanedUp(p)
-            if (!loopPositions.contains(p)) continue
-            val pair = rideEastWest(char, crossings, riding)
-            crossings = pair.first
-            riding = pair.second
-            println("Riding on $riding, crossings = $crossings")
+            val char = getCharCleanedUp(p, loop)
+            if (!loop.contains(p)) continue
+            val (newCrossings, newRiding) = rideEastWest(char, crossings, riding)
+            crossings = newCrossings
+            riding = newRiding
         }
-
         return crossings.isEven()
     }
 
     private fun rideNorthSouth(
-        char: Char,
+        currentlyOn: Char,
         crossings: Int,
-        riding: Char?
+        startedOn: Char?
     ): Pair<Int, Char?> {
-        var crossings1 = crossings
-        var riding1 = riding
-        when (char) {
-            '|' -> Unit
-            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
-            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
-            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
-            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
-            '-' -> {
-                crossings1++
-                riding1 = null
-            }
+        return when (currentlyOn) {
+            '|' -> crossings to startedOn
+            '-' -> crossings + 1 to null
+            else -> ride(currentlyOn, crossings, startedOn)
         }
-        return Pair(crossings1, riding1)
     }
 
     private fun rideEastWest(
-        char: Char,
+        currentlyOn: Char,
         crossings: Int,
-        riding: Char?
+        startedOn: Char?
     ): Pair<Int, Char?> {
-        var crossings1 = crossings
-        var riding1 = riding
-        when (char) {
-            '-' -> Unit
-            'L' -> riding1 = handleRiding('7', riding1, char) { crossings1++ }
-            'F' -> riding1 = handleRiding('J', riding1, char) { crossings1++ }
-            'J' -> riding1 = handleRiding('F', riding1, char) { crossings1++ }
-            '7' -> riding1 = handleRiding('L', riding1, char) { crossings1++ }
-            '|' -> {
-                crossings1++
-                riding1 = null
+        return when (currentlyOn) {
+            '-' -> crossings to startedOn
+            '|' -> crossings + 1 to null
+            else -> ride(currentlyOn, crossings, startedOn)
+        }
+    }
+
+    private fun ride(
+        currentlyOn: Char,
+        crossings: Int,
+        startedOn: Char?
+    ): Pair<Int, Char?> {
+        val crossedLoop = when (currentlyOn) {
+            'L' -> startedOn == '7'
+            'F' -> startedOn == 'J'
+            'J' -> startedOn == 'F'
+            '7' -> startedOn == 'L'
+            else -> throw IllegalArgumentException("something went wrong")
+        }
+
+        return if (crossedLoop) {
+            crossings + 1 to null
+        } else {
+            if (startedOn == null) {
+                crossings to currentlyOn
+            } else {
+                crossings to null
             }
         }
-        return Pair(crossings1, riding1)
     }
 
     private fun handleRiding(
@@ -362,11 +390,11 @@ class Day10 : AbstractDay() {
         return inputMap[pos.y][pos.x]
     }
 
-    private fun getCharCleanedUp(pos: Point): Char {
-        return loopPositions[pos] ?: '.'
+    private fun getCharCleanedUp(pos: Point, loop: Map<Point, Char>): Char {
+        return loop[pos] ?: '.'
     }
 
-    private fun printMap(pointsInside: Collection<Point>) {
+    private fun printMap(pointsInside: Collection<Point>, loopPositions: Map<Point, Char>) {
         inputMap.forEachIndexed { y, s ->
             s.forEachIndexed { x, _ ->
                 val p = Point(x, y)
