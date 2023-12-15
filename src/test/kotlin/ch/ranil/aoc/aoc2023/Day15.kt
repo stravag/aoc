@@ -41,21 +41,17 @@ class Day15 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Int {
-        val boxes = HashMap<Int, LinkedHashMap<String, Int>>()
+        val boxes = mutableMapOf<Int, MutableMap<String, Int>>()
 
         input
             .joinToString("")
             .split(",")
-            .forEach {
-                val (_, label, operation, focalLength) = Regex("([a-zA-Z]+)([-=])([0-9])*").find(it)?.groupValues.orEmpty()
+            .forEach { data ->
+                val (_, label, operation, focalLength) = Regex("([a-zA-Z]+)([-=])([0-9])*").find(data)?.groupValues.orEmpty()
                 val boxNumber = hash(label)
                 when (operation) {
                     "-" -> boxes[boxNumber]?.remove(label)
-                    "=" -> {
-                        val entries = boxes[boxNumber] ?: LinkedHashMap()
-                        entries[label] = focalLength.toInt()
-                        boxes[boxNumber] = entries
-                    }
+                    "=" -> addEntry(boxes, boxNumber, label, focalLength)
                 }
             }
 
@@ -65,6 +61,18 @@ class Day15 : AbstractDay() {
                 sumOfBox += (boxNumber + 1) * (index + 1) * entry.value
             }
             sumOfBox
+        }
+    }
+
+    private fun addEntry(
+        boxes: MutableMap<Int, MutableMap<String, Int>>,
+        boxNumber: Int,
+        label: String,
+        focalLength: String
+    ) {
+        boxes.compute(boxNumber) { _, entries ->
+            entries?.also { it[label] = focalLength.toInt() }
+                ?: mutableMapOf(label to focalLength.toInt())
         }
     }
 
