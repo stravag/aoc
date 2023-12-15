@@ -7,8 +7,13 @@ import kotlin.test.assertEquals
 class Day15 : AbstractDay() {
 
     @Test
+    fun part1TestHash() {
+        assertEquals(52, hash("HASH"))
+    }
+
+    @Test
     fun part1Test() {
-        assertEquals(0, compute1(testInput))
+        assertEquals(516804, compute1(testInput))
     }
 
     @Test
@@ -27,10 +32,24 @@ class Day15 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Int {
-        TODO()
+        return input
+            .joinToString("")
+            .split(",")
+            .sumOf {
+                hash(it)
+            }
     }
 
     private fun compute2(input: List<String>): Int {
         TODO()
+    }
+
+    private fun hash(s: String): Int {
+        return s.fold(0) { acc, c ->
+            var newAcc = acc + c.code
+            newAcc *= 17
+            newAcc %= 256
+            newAcc
+        }
     }
 }
