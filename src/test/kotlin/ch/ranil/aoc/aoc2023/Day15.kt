@@ -28,7 +28,7 @@ class Day15 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(231844, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -47,22 +47,22 @@ class Day15 : AbstractDay() {
             .joinToString("")
             .split(",")
             .forEach {
-                val boxNumber = hash(it)
-                if (it.contains("-") && boxes.contains(boxNumber)) {
-                    val label = it.replace("-", "")
-                    boxes.getValue(boxNumber).remove(label)
-                } else if (it.contains("=")){
-                    val (label, focalLengthStr) = it.split("=")
-                    val linkedMap = boxes[boxNumber] ?: LinkedHashMap()
-                    linkedMap[label] = focalLengthStr.toInt()
-                    boxes[boxNumber] = linkedMap
+                val (_, label, operation, focalLength) = Regex("([a-zA-Z]+)([-=])([0-9])*").find(it)?.groupValues.orEmpty()
+                val boxNumber = hash(label)
+                when (operation) {
+                    "-" -> boxes[boxNumber]?.remove(label)
+                    "=" -> {
+                        val entries = boxes[boxNumber] ?: LinkedHashMap()
+                        entries[label] = focalLength.toInt()
+                        boxes[boxNumber] = entries
+                    }
                 }
             }
 
-        return boxes.entries.sumOf { (boxNumber, data) ->
+        return boxes.entries.sumOf { (boxNumber, entries) ->
             var sumOfBox = 0
-            data.entries.forEachIndexed { index, entry ->
-                sumOfBox += boxNumber * index * entry.value
+            entries.entries.forEachIndexed { index, entry ->
+                sumOfBox += (boxNumber + 1) * (index + 1) * entry.value
             }
             sumOfBox
         }
