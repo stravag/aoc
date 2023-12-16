@@ -12,6 +12,11 @@ interface Coordinate {
 
 data class Point(override val x: Int, override val y: Int) : Coordinate {
     override fun toString(): String = "($x,$y)"
+
+    fun north() = Point(x, y - 1)
+    fun east() = Point(x + 1, y)
+    fun south() = Point(x, y + 1)
+    fun west() = Point(x - 1, y)
 }
 
 fun Coordinate.isAdjacentTo(other: Point): Boolean {

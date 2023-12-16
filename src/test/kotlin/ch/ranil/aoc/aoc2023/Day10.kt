@@ -339,11 +339,6 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
         }
     }
 
-    private fun Point.north() = Point(x, y - 1)
-    private fun Point.east() = Point(x + 1, y)
-    private fun Point.south() = Point(x, y + 1)
-    private fun Point.west() = Point(x - 1, y)
-
     private data class Connections(val a: Point, val b: Point) {
         fun anyIs(pos: Point) = a == pos || b == pos
     }
