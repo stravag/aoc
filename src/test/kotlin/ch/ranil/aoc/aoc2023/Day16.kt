@@ -1,7 +1,9 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.PrintColor
 import ch.ranil.aoc.aoc2023.Day16.Direction.*
+import ch.ranil.aoc.printColor
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -10,6 +12,19 @@ class Day16 : AbstractDay() {
     @Test
     fun part1Test() {
         assertEquals(46, compute1(testInput))
+    }
+
+    @Test
+    fun part1TestManual() {
+        assertEquals(
+            1,
+            compute1(
+                """
+            ..
+            ..
+                """.trimIndent().lines(),
+            ),
+        )
     }
 
     @Test
@@ -28,13 +43,20 @@ class Day16 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Int {
-        var activeBeams: Set<Beam> = setOf(Beam(Point(-1, 0), E))
-        val beamCache: MutableSet<Set<Beam>> = mutableSetOf()
-        val energized: MutableSet<Point> = mutableSetOf()
+        val startPoint = Point(0, 0)
+        var activeBeams: Set<Beam> = setOf(Beam(startPoint, E))
+        val beamCache: MutableSet<Set<Beam>> = mutableSetOf(activeBeams)
+        val energized: MutableSet<Point> = mutableSetOf(startPoint)
 
         do {
             activeBeams = activeBeams.flatMap { beam -> beam.move(input.getChar(beam.p)) }.toSet()
-        }
+            energized.addAll(activeBeams.map { it.p })
+            printMap(input, energized, activeBeams)
+        } while (beamCache.add(activeBeams))
+
+        printMap(input, energized, activeBeams)
+
+        return energized.size
     }
 
     private fun List<String>.getChar(p: Point): Char? {
@@ -47,7 +69,7 @@ class Day16 : AbstractDay() {
 
     private data class Beam(
         val p: Point,
-        val direction: Direction
+        val direction: Direction,
     ) {
         private fun move(direction: Direction): Beam = when (direction) {
             N -> Beam(p.north(), direction)
@@ -57,54 +79,72 @@ class Day16 : AbstractDay() {
         }
 
         fun move(char: Char?): Set<Beam> {
-
             return when (char) {
                 '/' -> when (direction) {
-                    N -> TODO()
-                    E -> TODO()
-                    S -> TODO()
-                    W -> TODO()
+                    N -> setOf(move(E))
+                    E -> setOf(move(N))
+                    S -> setOf(move(W))
+                    W -> setOf(move(S))
                 }
-                '\\' -> TODO()
-                '-' -> TODO()
-                '|' -> TODO()
+
+                '\\' -> when (direction) {
+                    N -> setOf(move(W))
+                    E -> setOf(move(S))
+                    S -> setOf(move(E))
+                    W -> setOf(move(N))
+                }
+
+                '-' -> when (direction) {
+                    N, S -> setOf(move(E), move(W))
+                    else -> setOf(move(direction))
+                }
+
+                '|' -> when (direction) {
+                    E, W -> setOf(move(N), move(S))
+                    else -> setOf(move(direction))
+                }
+
                 '.' -> setOf(move(direction))
                 else -> emptySet()
             }
-
-            return when (direction) {
-                N -> when (char) {
-                    '/' -> listOf(move(E))
-                    '\\' -> listOf(move(W))
-                    '-' -> listOf(move(W), move(E))
-                    else -> listOf(move(N))
-                }
-
-                E -> when (char) {
-                    '/' -> listOf(move(N))
-                    '\\' -> listOf(move(S))
-                    '|' -> listOf(move(N), move(S))
-                    else -> listOf(move(E))
-                }
-
-                S -> when (char) {
-                    '/' -> listOf(move(W))
-                    '\\' -> listOf(move(E))
-                    '-' -> listOf(move(W), move(E))
-                    else -> listOf(move(S))
-                }
-
-                W -> when (char) {
-                    '/' -> listOf(move(S))
-                    '\\' -> listOf(move(N))
-                    '|' -> listOf(move(N), move(S))
-                    else -> listOf(move(W))
-                }
-            }.toSet()
         }
     }
 
-    enum class Direction {
+    private enum class Direction {
         N, E, S, W
+    }
+
+    private fun printMap(input: List<String>, energized: Set<Point>, activeBeams: Set<Beam>) {
+        val testSolution = """
+            ######....
+            .#...#....
+            .#...#####
+            .#...##...
+            .#...##...
+            .#...##...
+            .#..####..
+            ########..
+            .#######..
+            .#...#.#..
+        """.trimIndent().lines()
+
+        input.forEachIndexed { y, s ->
+            s.forEachIndexed { x, c ->
+                val point = Point(x, y)
+                if (activeBeams.any { it.p == point }) {
+                    if (testSolution[point.y][point.x] == '#') {
+                        printColor(PrintColor.YELLOW, c)
+                    } else {
+                        printColor(PrintColor.RED, c)
+                    }
+                } else if (energized.contains(point)) {
+                    printColor(PrintColor.GREEN, c)
+                } else {
+                    print(c)
+                }
+            }
+            println("  ${testSolution[y]}")
+        }
+        println()
     }
 }
