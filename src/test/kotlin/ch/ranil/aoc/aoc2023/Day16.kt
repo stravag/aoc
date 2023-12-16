@@ -1,9 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.PrintColor
 import ch.ranil.aoc.aoc2023.Day16.Direction.*
-import ch.ranil.aoc.printColor
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -15,58 +13,56 @@ class Day16 : AbstractDay() {
     }
 
     @Test
-    fun part1TestManual() {
-        assertEquals(
-            3,
-            compute1(
-                """
-            .\
-            ..
-                """.trimIndent().lines(),
-            ),
-        )
-    }
-
-    @Test
     fun part1Puzzle() {
         assertEquals(6361, compute1(puzzleInput))
     }
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(51, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(6701, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
-        val startPoint = Point(0, 0)
-        var activeBeams: Set<Beam> = setOf(Beam(startPoint, E))
-        val beamCache: MutableSet<Set<Beam>> = mutableSetOf(activeBeams)
-        val energized: MutableSet<Point> = mutableSetOf(startPoint)
+        val initialBeam = Beam(Point(0, 0), E)
+        return countEnergizedTiles(initialBeam, input)
+    }
+
+    private fun compute2(input: List<String>): Int {
+        val xMax = input.first().count() - 1
+        val yMax = input.count() - 1
+
+        val initialBeams = (0..xMax).map { x -> Beam(Point(x, 0), S) } +
+                (0..yMax).map { y -> Beam(Point(0, y), E) } +
+                (0..yMax).map { y -> Beam(Point(xMax, y), W) } +
+                (0..xMax).map { x -> Beam(Point(x, yMax), N) }
+
+        return initialBeams.maxOf { countEnergizedTiles(it, input) }
+    }
+
+    private fun countEnergizedTiles(initialBeam: Beam, input: List<String>): Int {
+        var activeBeams: Set<Beam> = setOf(initialBeam)
+        val beamCache: MutableSet<Beam> = mutableSetOf(initialBeam)
+        val energized: MutableSet<Point> = mutableSetOf(initialBeam.p)
 
         do {
             activeBeams = activeBeams
                 .flatMap { beam -> beam.move(input.getChar(beam.p)) }
                 .filter { it.p.containedIn(input) }
+                .filterNot { beamCache.contains(it) }
+                .onEach { energized.add(it.p) }
                 .toSet()
-            energized.addAll(activeBeams.map { it.p })
-        } while (beamCache.add(activeBeams))
-
-        printMap(input, energized, activeBeams)
+        } while (beamCache.addAll(activeBeams))
 
         return energized.size
     }
 
     private fun List<String>.getChar(p: Point): Char? {
         return this.getOrNull(p.y)?.getOrNull(p.x)
-    }
-
-    private fun compute2(input: List<String>): Int {
-        TODO()
     }
 
     private data class Beam(
@@ -114,22 +110,5 @@ class Day16 : AbstractDay() {
 
     private enum class Direction {
         N, E, S, W
-    }
-
-    private fun printMap(input: List<String>, energized: Set<Point>, activeBeams: Set<Beam>) {
-        input.forEachIndexed { y, s ->
-            s.forEachIndexed { x, c ->
-                val point = Point(x, y)
-                if (activeBeams.any { it.p == point }) {
-                    printColor(PrintColor.YELLOW, c)
-                } else if (energized.contains(point)) {
-                    printColor(PrintColor.GREEN, c)
-                } else {
-                    print(c)
-                }
-            }
-            println()
-        }
-        println()
     }
 }
