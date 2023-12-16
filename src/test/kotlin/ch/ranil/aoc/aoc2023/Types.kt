@@ -17,6 +17,10 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
     fun east() = Point(x + 1, y)
     fun south() = Point(x, y + 1)
     fun west() = Point(x - 1, y)
+
+    fun containedIn(map: List<String>): Boolean {
+        return map.getOrNull(y)?.getOrNull(x) != null
+    }
 }
 
 fun Coordinate.isAdjacentTo(other: Point): Boolean {

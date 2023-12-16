@@ -17,10 +17,10 @@ class Day16 : AbstractDay() {
     @Test
     fun part1TestManual() {
         assertEquals(
-            1,
+            3,
             compute1(
                 """
-            ..
+            .\
             ..
                 """.trimIndent().lines(),
             ),
@@ -29,7 +29,7 @@ class Day16 : AbstractDay() {
 
     @Test
     fun part1Puzzle() {
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(6361, compute1(puzzleInput))
     }
 
     @Test
@@ -49,9 +49,11 @@ class Day16 : AbstractDay() {
         val energized: MutableSet<Point> = mutableSetOf(startPoint)
 
         do {
-            activeBeams = activeBeams.flatMap { beam -> beam.move(input.getChar(beam.p)) }.toSet()
+            activeBeams = activeBeams
+                .flatMap { beam -> beam.move(input.getChar(beam.p)) }
+                .filter { it.p.containedIn(input) }
+                .toSet()
             energized.addAll(activeBeams.map { it.p })
-            printMap(input, energized, activeBeams)
         } while (beamCache.add(activeBeams))
 
         printMap(input, energized, activeBeams)
@@ -115,35 +117,18 @@ class Day16 : AbstractDay() {
     }
 
     private fun printMap(input: List<String>, energized: Set<Point>, activeBeams: Set<Beam>) {
-        val testSolution = """
-            ######....
-            .#...#....
-            .#...#####
-            .#...##...
-            .#...##...
-            .#...##...
-            .#..####..
-            ########..
-            .#######..
-            .#...#.#..
-        """.trimIndent().lines()
-
         input.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
                 val point = Point(x, y)
                 if (activeBeams.any { it.p == point }) {
-                    if (testSolution[point.y][point.x] == '#') {
-                        printColor(PrintColor.YELLOW, c)
-                    } else {
-                        printColor(PrintColor.RED, c)
-                    }
+                    printColor(PrintColor.YELLOW, c)
                 } else if (energized.contains(point)) {
                     printColor(PrintColor.GREEN, c)
                 } else {
                     print(c)
                 }
             }
-            println("  ${testSolution[y]}")
+            println()
         }
         println()
     }
