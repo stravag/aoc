@@ -5,9 +5,13 @@ import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-interface Coordinate {
+interface Coordinate : Comparable<Coordinate> {
     val x: Int
     val y: Int
+
+    override fun compareTo(other: Coordinate): Int {
+        return compareValuesBy(this, other, { it.y }, { it.x })
+    }
 }
 
 data class Point(override val x: Int, override val y: Int) : Coordinate {
@@ -18,9 +22,26 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
     fun south() = Point(x, y + 1)
     fun west() = Point(x - 1, y)
 
-    fun containedIn(map: List<String>): Boolean {
+    @JvmName("containedInStrings")
+    infix fun containedIn(map: List<String>): Boolean {
         return map.getOrNull(y)?.getOrNull(x) != null
     }
+
+    infix fun containedIn(map: List<List<*>>): Boolean {
+        return map.getOrNull(y)?.getOrNull(x) != null
+    }
+}
+
+enum class Direction {
+    N, E, S, W;
+
+    val opposite
+        get() = when (this) {
+            N -> S
+            E -> W
+            S -> N
+            W -> E
+        }
 }
 
 fun Coordinate.isAdjacentTo(other: Point): Boolean {

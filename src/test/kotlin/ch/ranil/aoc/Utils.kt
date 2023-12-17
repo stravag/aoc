@@ -1,5 +1,6 @@
 package ch.ranil.aoc
 
+import ch.ranil.aoc.aoc2023.Point
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.max
@@ -35,6 +36,15 @@ fun LongRange.rangeOverlap(other: LongRange): LongRange {
 
 fun List<Int>.product(): Int {
     return this.reduce { acc, t -> acc * t }
+}
+
+fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
+    forEachIndexed { y, s ->
+        s.forEachIndexed { x, c ->
+            printChar(Point(x, y), c)
+        }
+        println()
+    }
 }
 
 fun Int.isEven(): Boolean = this % 2 == 0
