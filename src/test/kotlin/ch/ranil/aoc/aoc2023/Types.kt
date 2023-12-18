@@ -22,6 +22,22 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
     fun south() = Point(x, y + 1)
     fun west() = Point(x - 1, y)
 
+    fun edges(): List<Point> {
+        return listOf(
+            // Above
+            Point(x - 1, y - 1),
+            Point(x, y - 1),
+            Point(x + 1, y - 1),
+            // Side
+            Point(x - 1, y),
+            Point(x + 1, y),
+            // Below
+            Point(x - 1, y + 1),
+            Point(x, y + 1),
+            Point(x + 1, y + 1),
+        )
+    }
+
     @JvmName("containedInStrings")
     infix fun containedIn(map: List<String>): Boolean {
         return map.getOrNull(y)?.getOrNull(x) != null
@@ -29,6 +45,15 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
 
     infix fun containedIn(map: List<List<*>>): Boolean {
         return map.getOrNull(y)?.getOrNull(x) != null
+    }
+
+    fun move(steps: Int, direction: Direction): Point {
+        return when (direction) {
+            Direction.N -> copy(y = y - steps)
+            Direction.E -> copy(x = x + steps)
+            Direction.S -> copy(y = y + steps)
+            Direction.W -> copy(x = x - steps)
+        }
     }
 }
 
@@ -48,22 +73,6 @@ fun Coordinate.isAdjacentTo(other: Point): Boolean {
     return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
 }
 
-fun <T> Coordinate.edges(coordinateConstructor: (Int, Int) -> T): List<T> {
-    return listOf(
-        // Above
-        coordinateConstructor(x - 1, y - 1),
-        coordinateConstructor(x, y - 1),
-        coordinateConstructor(x + 1, y - 1),
-        // Side
-        coordinateConstructor(x - 1, y),
-        coordinateConstructor(x + 1, y),
-        // Below
-        coordinateConstructor(x - 1, y + 1),
-        coordinateConstructor(x, y + 1),
-        coordinateConstructor(x + 1, y + 1),
-    )
-}
-
 fun Point.distanceTo(other: Point): Int {
     return abs(other.x - x) + abs(other.y - y)
 }
@@ -72,7 +81,7 @@ class PointTest {
     @Test
     fun testEdgesAndAdjacent() {
         val center = Point(0, 0)
-        assertTrue(center.edges(::Point).all { edge -> edge.isAdjacentTo(center) })
+        assertTrue(center.edges().all { edge -> edge.isAdjacentTo(center) })
     }
 
     @Test
@@ -88,6 +97,6 @@ class PointTest {
 
     @Test
     fun testEdgesUnique() {
-        assertEquals(8, Point(0, 0).edges(::Point).distinct().size)
+        assertEquals(8, Point(0, 0).edges().distinct().size)
     }
 }

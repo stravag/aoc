@@ -23,7 +23,8 @@ class Day10 : AbstractDay() {
     @Test
     fun part2Test() {
         assertEquals(
-            18, compute2(
+            18,
+            compute2(
                 """
                 ............
                 .S--------7.
@@ -37,8 +38,8 @@ class Day10 : AbstractDay() {
                 .|...||...|.
                 .L---JL---J.
                 ............
-            """.trimIndent().lines()
-            )
+                """.trimIndent().lines(),
+            ),
         )
     }
 
@@ -59,7 +60,8 @@ class Day10 : AbstractDay() {
 
          */
         assertEquals(
-            8, compute2(
+            8,
+            compute2(
                 """
                 .F----7F7F7F7F-7....
                 .|F--7||||||||FJ....
@@ -71,15 +73,16 @@ class Day10 : AbstractDay() {
                 .....|FJLJ|FJ|F7|.LJ
                 ....FJL-7.||.||||...
                 ....L---J.LJ.LJLJ...
-            """.trimIndent().lines()
-            )
+                """.trimIndent().lines(),
+            ),
         )
     }
 
     @Test
     fun part2Test3() {
         assertEquals(
-            10, compute2(
+            10,
+            compute2(
                 """
                 FF7FSF7F7F7F7F7F---7
                 L|LJ||||||||||||F--J
@@ -91,8 +94,8 @@ class Day10 : AbstractDay() {
                 7-L-JL7||F7|L7F-7F7|
                 L.L7LFJ|||||FJL7||LJ
                 L7JLJL-JLJLJL--JLJ.L
-            """.trimIndent().lines()
-            )
+                """.trimIndent().lines(),
+            ),
         )
     }
 
@@ -156,7 +159,6 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
 
         return distance
     }
-
 
     private fun compute2(input: List<String>): Int {
         // if pipe cross count even times: outside
@@ -242,10 +244,9 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
         }
     }
 
-
     private fun findStartConnectors(start: Point): Connections {
         val startConnections = start
-            .edges(::Point)
+            .edges()
             .filter { edge -> edge.isContainedInMap() }
             .filter { edge ->
                 findConnectingPoints(edge)?.anyIs(start) ?: false
@@ -263,7 +264,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     }
 
     private fun Point.isEdgeOfMap(): Boolean {
-        return edges(::Point).any { !it.isContainedInMap() }
+        return edges().any { !it.isContainedInMap() }
     }
 
     private fun isConnectedToEdge(pos: Point, loop: Map<Point, Char>): Boolean {
