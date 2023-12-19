@@ -22,6 +22,29 @@ class Day19 : AbstractDay() {
     }
 
     @Test
+    fun part2Tests() {
+        Workflow.parse("qqz{s>2770:qs,m<1801:hdj,R}").possibleCombinations()
+
+        """
+            px{a<2006:qkq,m>2090:A,rfg}
+            pv{a>1716:R,A}
+            lnx{m>1548:A,A}
+            rfg{s<537:gd,x>2440:R,A}
+            qs{s>3448:A,lnx}
+            qkq{x<1416:A,crn}
+            crn{x>2662:A,R}
+            in{s<1351:px,qqz}
+            qqz{s>2770:qs,m<1801:hdj,R}
+            gd{a>3333:R,R}
+            hdj{m>838:A,pv}
+        """.trimIndent()
+            .lines()
+            .map { Workflow.parse(it) }
+            .map { it.name to it.possibleCombinations() }
+            .forEach { (name, comb) -> println("${name.name} = ${comb.first}, ${comb.second.map { "${it.key.name} = ${it.value}" }}") }
+    }
+
+    @Test
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
@@ -55,19 +78,18 @@ class Day19 : AbstractDay() {
     }
 
     private fun countPossibleCombinations(
-        knownPossibleCombinations: Long,
+        knownCombinations: Long,
         workflowName: WorkflowName,
         workflows: Map<WorkflowName, Workflow>,
     ): Long {
         val workflow = workflows.getValue(workflowName)
 
-        val (addedCombinationsForWorkflow, nextWorkflows) = workflow.possibleCombinations()
+        val (combinationsForWorkflow, nextWorkflows) = workflow.possibleCombinations()
 
-        return nextWorkflows.fold(
-            initial = knownPossibleCombinations * addedCombinationsForWorkflow
-        ) { combinations, nextWorkflow ->
-            combinations * countPossibleCombinations(combinations, nextWorkflow, workflows)
+        val combinationsForBranch = nextWorkflows.entries.fold(knownCombinations + combinationsForWorkflow) { acc, entry ->
+            acc + countPossibleCombinations(entry.value, entry.key, workflows)
         }
+        return combinationsForBranch
     }
 
     private fun List<String>.parse(): Pair<Map<WorkflowName, Workflow>, List<PartsRating>> {
@@ -102,16 +124,32 @@ class Day19 : AbstractDay() {
             throw IllegalStateException("Workflow $this didn't yield response for $rating")
         }
 
-        fun possibleCombinations(): Pair<Long, List<WorkflowName>> {
-            return statements
-                .filter { it.response != Rejected }
-                .map {
-                    it.combinationsToFullFil() to it.response
+        fun possibleCombinations(): Pair<Long, Map<WorkflowName, Long>> {
+
+            return statements.windowed(size = 2, step = 1) { (ifStmt, elseStmt) ->
+                var combinations = 0L
+                val nextWorkflowCombinations = mutableMapOf<WorkflowName, Long>()
+                if (ifStmt.response is Accepted) {
+                    combinations += ifStmt.combinationsForTrue()
                 }
-                .fold(0L to mutableListOf<WorkflowName>()) { (knownCombinations, responses), (combinations, response) ->
-                    if (response is WorkflowName) responses.add(response)
-                    (knownCombinations * combinations) to responses
+                if (ifStmt.response is WorkflowName) {
+                    nextWorkflowCombinations.compute(ifStmt.response as WorkflowName) { _, c ->
+                        (c ?: 0L) + ifStmt.combinationsForTrue()
+                    }
                 }
+                if (elseStmt.response is Accepted) {
+                    combinations += ifStmt.combinationsForFalse()
+                }
+                if (elseStmt.response is WorkflowName) {
+                    nextWorkflowCombinations.compute(elseStmt.response as WorkflowName) { _, c ->
+                        (c ?: 0L) + ifStmt.combinationsForFalse()
+                    }
+                }
+                combinations to nextWorkflowCombinations
+            }.reduce { acc, map ->
+                acc.second.putAll(map.second)
+                (acc.first + map.first) to acc.second
+            }
         }
 
         companion object {
@@ -136,7 +174,8 @@ class Day19 : AbstractDay() {
 
     private sealed interface Statement {
         val response: WorkFlowResponse
-        fun combinationsToFullFil(): Long
+        fun combinationsForTrue(): Long
+        fun combinationsForFalse(): Long = 4000 - combinationsForTrue()
         fun process(rating: PartsRating): WorkFlowResponse?
     }
 
@@ -155,7 +194,7 @@ class Day19 : AbstractDay() {
             }
         }
 
-        override fun combinationsToFullFil(): Long {
+        override fun combinationsForTrue(): Long {
             return when (comparator) {
                 "<" -> number - 1L
                 ">" -> 4000L - number
@@ -180,9 +219,7 @@ class Day19 : AbstractDay() {
             return response
         }
 
-        override fun combinationsToFullFil(): Long {
-            return 1L
-        }
+        override fun combinationsForTrue(): Long = throw UnsupportedOperationException()
 
         companion object {
             fun of(s: String): ElseStatement {
