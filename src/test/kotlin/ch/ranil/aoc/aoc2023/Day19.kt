@@ -18,7 +18,7 @@ class Day19 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(167409079868000, compute2(testInput))
     }
 
     @Test
@@ -47,7 +47,17 @@ class Day19 : AbstractDay() {
         return isAccepted(rating, nextWorkflow, workflows)
     }
 
-    private fun compute2(input: List<String>): Int {
+    private fun compute2(input: List<String>): Long {
+        val (workflows, _) = input.parse()
+        return countPossibleCombinations(0L, "in", workflows)
+    }
+
+    private fun countPossibleCombinations(
+        knownPossibleCombinations: Long,
+        workflowName: WorkflowName,
+        workflows: Map<WorkflowName, Workflow>,
+    ): Long {
+        val workflow = workflows[workflowName] ?: return if (workflowName == "A") knownPossibleCombinations else 0
         TODO()
     }
 
