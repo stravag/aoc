@@ -51,7 +51,7 @@ class Day19 : AbstractDay() {
 
     private fun compute2(input: List<String>): Long {
         val (workflows, _) = input.parse()
-        return countPossibleCombinations(0L, WorkflowName("in"), workflows)
+        return countPossibleCombinations(1L, WorkflowName("in"), workflows)
     }
 
     private fun countPossibleCombinations(
@@ -59,7 +59,15 @@ class Day19 : AbstractDay() {
         workflowName: WorkflowName,
         workflows: Map<WorkflowName, Workflow>,
     ): Long {
-        TODO()
+        val workflow = workflows.getValue(workflowName)
+
+        val (addedCombinationsForWorkflow, nextWorkflows) = workflow.possibleCombinations()
+
+        return nextWorkflows.fold(
+            initial = knownPossibleCombinations * addedCombinationsForWorkflow
+        ) { combinations, nextWorkflow ->
+            combinations * countPossibleCombinations(combinations, nextWorkflow, workflows)
+        }
     }
 
     private fun List<String>.parse(): Pair<Map<WorkflowName, Workflow>, List<PartsRating>> {
@@ -94,6 +102,18 @@ class Day19 : AbstractDay() {
             throw IllegalStateException("Workflow $this didn't yield response for $rating")
         }
 
+        fun possibleCombinations(): Pair<Long, List<WorkflowName>> {
+            return statements
+                .filter { it.response != Rejected }
+                .map {
+                    it.combinationsToFullFil() to it.response
+                }
+                .fold(0L to mutableListOf<WorkflowName>()) { (knownCombinations, responses), (combinations, response) ->
+                    if (response is WorkflowName) responses.add(response)
+                    (knownCombinations * combinations) to responses
+                }
+        }
+
         companion object {
             fun parse(s: String): Workflow {
                 val (_, name, operationsString) = Regex("([a-z]+)\\{(.*)}").find(s)?.groupValues.orEmpty()
@@ -115,6 +135,8 @@ class Day19 : AbstractDay() {
     }
 
     private sealed interface Statement {
+        val response: WorkFlowResponse
+        fun combinationsToFullFil(): Long
         fun process(rating: PartsRating): WorkFlowResponse?
     }
 
@@ -122,13 +144,21 @@ class Day19 : AbstractDay() {
         private val r: String,
         private val comparator: String,
         private val number: Int,
-        private val response: WorkFlowResponse
+        override val response: WorkFlowResponse
     ) : Statement {
         override fun process(rating: PartsRating): WorkFlowResponse? {
             val value = rating.get(r)
             return when (comparator) {
                 "<" -> if (value < number) response else null
                 ">" -> if (value > number) response else null
+                else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
+            }
+        }
+
+        override fun combinationsToFullFil(): Long {
+            return when (comparator) {
+                "<" -> number - 1L
+                ">" -> 4000L - number
                 else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
             }
         }
@@ -144,10 +174,14 @@ class Day19 : AbstractDay() {
     }
 
     private data class ElseStatement(
-        private val response: WorkFlowResponse
+        override val response: WorkFlowResponse
     ) : Statement {
         override fun process(rating: PartsRating): WorkFlowResponse {
             return response
+        }
+
+        override fun combinationsToFullFil(): Long {
+            return 1L
         }
 
         companion object {
