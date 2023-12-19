@@ -30,7 +30,7 @@ class Day19 : AbstractDay() {
         val (workflows, ratings) = input.parse()
 
         return ratings.filter {
-            isAccepted(it, "in", workflows)
+            isAccepted(it, WorkflowName("in"), workflows)
         }.sumOf {
             it.x + it.m + it.a + it.s
         }
@@ -41,15 +41,17 @@ class Day19 : AbstractDay() {
         workflowName: WorkflowName,
         workflows: Map<WorkflowName, Workflow>,
     ): Boolean {
-        val workflow = workflows[workflowName] ?: return workflowName == "A"
-
-        val nextWorkflow = workflow.process(rating)
-        return isAccepted(rating, nextWorkflow, workflows)
+        val workflow = workflows.getValue(workflowName)
+        return when (val nextWorkflow = workflow.process(rating)) {
+            Accepted -> true
+            Rejected -> false
+            is WorkflowName -> isAccepted(rating, nextWorkflow, workflows)
+        }
     }
 
     private fun compute2(input: List<String>): Long {
         val (workflows, _) = input.parse()
-        return countPossibleCombinations(0L, "in", workflows)
+        return countPossibleCombinations(0L, WorkflowName("in"), workflows)
     }
 
     private fun countPossibleCombinations(
@@ -57,7 +59,6 @@ class Day19 : AbstractDay() {
         workflowName: WorkflowName,
         workflows: Map<WorkflowName, Workflow>,
     ): Long {
-        val workflow = workflows[workflowName] ?: return if (workflowName == "A") knownPossibleCombinations else 0
         TODO()
     }
 
@@ -82,40 +83,93 @@ class Day19 : AbstractDay() {
     }
 
     private data class Workflow(
-        val name: String,
-        private val ifCascade: List<String>,
-        private val elseStmt: String,
+        val name: WorkflowName,
+        val statements: List<Statement>,
     ) {
-        fun process(rating: PartsRating): WorkflowName {
-            for (stmt in ifCascade) {
-                val nextWorkFlowName = processIf(stmt, rating)
-                if (nextWorkFlowName != null) return nextWorkFlowName
+        fun process(rating: PartsRating): WorkFlowResponse {
+            for (statement in statements) {
+                val workFlowResponse = statement.process(rating)
+                if (workFlowResponse != null) return workFlowResponse
             }
-            return elseStmt
-        }
-
-        private fun processIf(stmt: String, rating: PartsRating): WorkflowName? {
-            val (_, r, comparator, number, workflowName) = Regex("([a-z]+)([<>])([0-9]+):([a-zA-Z]+)").find(stmt)?.groupValues.orEmpty()
-            val value = rating.get(r)
-            return when (comparator) {
-                "<" -> if (value < number.toInt()) workflowName else null
-                ">" -> if (value > number.toInt()) workflowName else null
-                else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
-            }
+            throw IllegalStateException("Workflow $this didn't yield response for $rating")
         }
 
         companion object {
             fun parse(s: String): Workflow {
                 val (_, name, operationsString) = Regex("([a-z]+)\\{(.*)}").find(s)?.groupValues.orEmpty()
-                val operations = operationsString.split(",")
+                val operations = operationsString
+                    .split(",")
+                    .map { stmt ->
+                        if (stmt.contains(":")) {
+                            IfStatement.of(stmt)
+                        } else {
+                            ElseStatement.of(stmt)
+                        }
+                    }
                 return Workflow(
-                    name = name,
-                    ifCascade = operations.dropLast(1),
-                    elseStmt = operations.last(),
+                    name = WorkflowName(name),
+                    statements = operations,
                 )
             }
         }
     }
+
+    private sealed interface Statement {
+        fun process(rating: PartsRating): WorkFlowResponse?
+    }
+
+    private data class IfStatement(
+        private val r: String,
+        private val comparator: String,
+        private val number: Int,
+        private val response: WorkFlowResponse
+    ) : Statement {
+        override fun process(rating: PartsRating): WorkFlowResponse? {
+            val value = rating.get(r)
+            return when (comparator) {
+                "<" -> if (value < number) response else null
+                ">" -> if (value > number) response else null
+                else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
+            }
+        }
+
+        companion object {
+            fun of(s: String): IfStatement {
+                val (_, r, comparator, number, workflowName) = Regex("([a-z]+)([<>])([0-9]+):([a-zA-Z]+)")
+                    .find(s)?.groupValues.orEmpty()
+
+                return IfStatement(r, comparator, number.toInt(), WorkFlowResponse.of(workflowName))
+            }
+        }
+    }
+
+    private data class ElseStatement(
+        private val response: WorkFlowResponse
+    ) : Statement {
+        override fun process(rating: PartsRating): WorkFlowResponse {
+            return response
+        }
+
+        companion object {
+            fun of(s: String): ElseStatement {
+                return ElseStatement(WorkFlowResponse.of(s))
+            }
+        }
+    }
+
+    private sealed interface WorkFlowResponse {
+        companion object {
+            fun of(s: String) = when (s) {
+                "A" -> Accepted
+                "R" -> Rejected
+                else -> WorkflowName(s)
+            }
+        }
+    }
+
+    private data object Accepted : WorkFlowResponse
+    private data object Rejected : WorkFlowResponse
+    private data class WorkflowName(val name: String) : WorkFlowResponse
 
     private data class PartsRating(
         val x: Int,
@@ -134,5 +188,3 @@ class Day19 : AbstractDay() {
         }
     }
 }
-
-private typealias WorkflowName = String
