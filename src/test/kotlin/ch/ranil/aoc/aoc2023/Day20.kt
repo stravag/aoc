@@ -20,11 +20,6 @@ class Day20 : AbstractDay() {
     }
 
     @Test
-    fun part2Test() {
-        assertEquals(0, compute2(testInput))
-    }
-
-    @Test
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
@@ -70,7 +65,38 @@ class Day20 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Int {
-        TODO()
+        val modules = input
+            .map { Module.parse(it) }
+            .associateBy { it.name }
+            .trackInputsOfConjunctionModules()
+
+        val pulseCount = mutableMapOf(
+            LOW to 0L,
+            HIGH to 0L,
+        )
+        repeat(Int.MAX_VALUE) { buttonCount ->
+            val initialPulse = modules.getValue(Broadcast.NAME).handlePulse("irrelevant", LOW)
+            pulseCount.computeIfPresent(LOW) { _, count -> count + 1 }
+
+            val pulsesToProcess: MutableList<ModuleAnswer> = mutableListOf(initialPulse)
+            while (pulsesToProcess.isNotEmpty()) {
+                val (src, pulses) = pulsesToProcess.removeFirst()
+                pulses.forEach { (dst, pulse) ->
+                    pulseCount.computeIfPresent(pulse) { _, count -> count + 1 }
+                    val nextPulse = modules[dst]?.handlePulse(src, pulse)
+                    if (nextPulse == null) {
+                        if (pulse == HIGH) {
+                            println("$src -${pulse.name.lowercase()}-> $dst")
+                        } else {
+                            return buttonCount + 1
+                        }
+                    } else if (nextPulse.nextPulses.isNotEmpty()) {
+                        pulsesToProcess.add(nextPulse)
+                    }
+                }
+            }
+        }
+        throw IllegalArgumentException("rx never pressed")
     }
 
     private sealed interface Module {
