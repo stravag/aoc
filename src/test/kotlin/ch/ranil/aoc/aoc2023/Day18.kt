@@ -30,7 +30,9 @@ class Day18 : AbstractDay() {
 
     private fun compute1(input: List<String>): Int {
         // shoelace methode
-        var s = 0
+        var s1 = 0
+        var s2 = 0
+        var edgeLength = 0
         val points = mutableListOf(Point(0, 0))
         input
             .map { it.parse1() }
@@ -38,13 +40,14 @@ class Day18 : AbstractDay() {
                 val lastPoint = points.last()
                 val nextPoint = lastPoint.move(length, direction)
 
-                s += (lastPoint.y + nextPoint.y) * (lastPoint.x - nextPoint.x)
-                s += length
-
+                s1 += (lastPoint.x * nextPoint.y)
+                s2 += (lastPoint.y * nextPoint.x)
+                edgeLength += length
                 points.add(nextPoint)
             }
 
-        return abs(s) / 2 + 1
+        val shoelaceArea = abs(s1 - s2) / 2
+        return shoelaceArea + (edgeLength / 2) + 1
     }
 
     private fun String.parse1(): DigInstruction {
@@ -65,6 +68,7 @@ class Day18 : AbstractDay() {
                 val lastPoint = points.last()
                 val nextPoint = lastPoint.move(length, direction)
 
+                // simplified "shoelace" compared to part1
                 s += (lastPoint.y.toLong() + nextPoint.y.toLong()) * (lastPoint.x.toLong() - nextPoint.x.toLong())
                 s += length
 
