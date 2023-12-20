@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
@@ -25,7 +26,7 @@ class Day05 : AbstractDay() {
     }
 
     @Test
-    @Ignore("brute-forced")
+    @Disabled("brute-forced")
     fun part2Puzzle() {
         assertEquals(24261545, compute2(puzzleInput))
     }

@@ -3,6 +3,7 @@ package ch.ranil.aoc.aoc2023
 import ch.ranil.aoc.AbstractDay
 import ch.ranil.aoc.aoc2023.Day20.Pulse.HIGH
 import ch.ranil.aoc.aoc2023.Day20.Pulse.LOW
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -20,6 +21,7 @@ class Day20 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
