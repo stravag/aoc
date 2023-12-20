@@ -2,6 +2,8 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.test.assertEquals
 
 class Day19 : AbstractDay() {
@@ -74,11 +76,11 @@ class Day19 : AbstractDay() {
 
     private fun compute2(input: List<String>): Long {
         val (workflows, _) = input.parse()
-        return countPossibleCombinations(1L, WorkflowName("in"), workflows)
+        return countPossibleCombinations(PartsRatingRanges(), WorkflowName("in"), workflows)
     }
 
     private fun countPossibleCombinations(
-        knownCombinations: Long,
+        knownCombinations: PartsRatingRanges,
         workflowName: WorkflowName,
         workflows: Map<WorkflowName, Workflow>,
     ): Long {
@@ -86,10 +88,7 @@ class Day19 : AbstractDay() {
 
         val (combinationsForWorkflow, nextWorkflows) = workflow.possibleCombinations()
 
-        val combinationsForBranch = nextWorkflows.entries.fold(knownCombinations + combinationsForWorkflow) { acc, entry ->
-            acc + countPossibleCombinations(entry.value, entry.key, workflows)
-        }
-        return combinationsForBranch
+        TODO()
     }
 
     private fun List<String>.parse(): Pair<Map<WorkflowName, Workflow>, List<PartsRating>> {
@@ -124,31 +123,30 @@ class Day19 : AbstractDay() {
             throw IllegalStateException("Workflow $this didn't yield response for $rating")
         }
 
-        fun possibleCombinations(): Pair<Long, Map<WorkflowName, Long>> {
-
+        fun possibleCombinations(): Pair<PartsRatingRanges, Map<WorkflowName, PartsRatingRanges>> {
             return statements.windowed(size = 2, step = 1) { (ifStmt, elseStmt) ->
-                var combinations = 0L
-                val nextWorkflowCombinations = mutableMapOf<WorkflowName, Long>()
+                var ranges = PartsRatingRanges()
+                val nextWorkflowCombinations = mutableMapOf<WorkflowName, PartsRatingRanges>()
                 if (ifStmt.response is Accepted) {
-                    combinations += ifStmt.combinationsForTrue()
+                    ranges = ranges.intersect(ifStmt.rangeForTrue())
                 }
                 if (ifStmt.response is WorkflowName) {
                     nextWorkflowCombinations.compute(ifStmt.response as WorkflowName) { _, c ->
-                        (c ?: 0L) + ifStmt.combinationsForTrue()
+                        (c ?: PartsRatingRanges()).intersect(ifStmt.rangeForTrue())
                     }
                 }
                 if (elseStmt.response is Accepted) {
-                    combinations += ifStmt.combinationsForFalse()
+                    ranges = ranges.intersect(ifStmt.rangeForTrue())
                 }
                 if (elseStmt.response is WorkflowName) {
                     nextWorkflowCombinations.compute(elseStmt.response as WorkflowName) { _, c ->
-                        (c ?: 0L) + ifStmt.combinationsForFalse()
+                        (c ?: PartsRatingRanges()).intersect(ifStmt.rangeForFalse())
                     }
                 }
-                combinations to nextWorkflowCombinations
+                ranges to nextWorkflowCombinations
             }.reduce { acc, map ->
                 acc.second.putAll(map.second)
-                (acc.first + map.first) to acc.second
+                (acc.first.intersect(map.first)) to acc.second
             }
         }
 
@@ -174,8 +172,8 @@ class Day19 : AbstractDay() {
 
     private sealed interface Statement {
         val response: WorkFlowResponse
-        fun combinationsForTrue(): Long
-        fun combinationsForFalse(): Long = 4000 - combinationsForTrue()
+        fun rangeForTrue(): PartsRatingRanges
+        fun rangeForFalse(): PartsRatingRanges
         fun process(rating: PartsRating): WorkFlowResponse?
     }
 
@@ -183,7 +181,7 @@ class Day19 : AbstractDay() {
         private val r: String,
         private val comparator: String,
         private val number: Int,
-        override val response: WorkFlowResponse
+        override val response: WorkFlowResponse,
     ) : Statement {
         override fun process(rating: PartsRating): WorkFlowResponse? {
             val value = rating.get(r)
@@ -194,12 +192,22 @@ class Day19 : AbstractDay() {
             }
         }
 
-        override fun combinationsForTrue(): Long {
-            return when (comparator) {
-                "<" -> number - 1L
-                ">" -> 4000L - number
+        override fun rangeForTrue(): PartsRatingRanges {
+            val range = when (comparator) {
+                "<" -> 1..<number
+                ">" -> number..4000
                 else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
             }
+            return PartsRatingRanges.build(r, range)
+        }
+
+        override fun rangeForFalse(): PartsRatingRanges {
+            val range = when (comparator) {
+                ">" -> 1..number
+                "<" -> number..4000
+                else -> throw IllegalArgumentException("unexpected comparator $comparator in $this")
+            }
+            return PartsRatingRanges.build(r, range)
         }
 
         companion object {
@@ -213,13 +221,14 @@ class Day19 : AbstractDay() {
     }
 
     private data class ElseStatement(
-        override val response: WorkFlowResponse
+        override val response: WorkFlowResponse,
     ) : Statement {
         override fun process(rating: PartsRating): WorkFlowResponse {
             return response
         }
 
-        override fun combinationsForTrue(): Long = throw UnsupportedOperationException()
+        override fun rangeForTrue(): PartsRatingRanges = PartsRatingRanges.empty()
+        override fun rangeForFalse(): PartsRatingRanges = PartsRatingRanges.empty()
 
         companion object {
             fun of(s: String): ElseStatement {
@@ -255,6 +264,38 @@ class Day19 : AbstractDay() {
                 "a" -> a
                 "s" -> s
                 else -> throw IllegalArgumentException("unexpected ratings value: $i")
+            }
+        }
+    }
+
+    private data class PartsRatingRanges(
+        val x: IntRange = 1..4000,
+        val m: IntRange = 1..4000,
+        val a: IntRange = 1..4000,
+        val s: IntRange = 1..4000,
+    ) {
+        fun intersect(other: PartsRatingRanges): PartsRatingRanges {
+            return PartsRatingRanges(
+                x = IntRange(max(x.first, other.x.first), min(x.last, other.x.last)),
+                m = IntRange(max(m.first, other.m.first), min(m.last, other.m.last)),
+                a = IntRange(max(a.first, other.a.first), min(a.last, other.a.last)),
+                s = IntRange(max(s.first, other.s.first), min(s.last, other.s.last)),
+            )
+        }
+
+        companion object {
+            fun build(r: String, range: IntRange): PartsRatingRanges {
+                return when (r) {
+                    "x" -> PartsRatingRanges(x = range)
+                    "m" -> PartsRatingRanges(m = range)
+                    "a" -> PartsRatingRanges(a = range)
+                    "s" -> PartsRatingRanges(s = range)
+                    else -> throw IllegalArgumentException("unexpected ratings value: $r")
+                }
+            }
+
+            fun empty(): PartsRatingRanges {
+                return PartsRatingRanges(IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY, IntRange.EMPTY)
             }
         }
     }
