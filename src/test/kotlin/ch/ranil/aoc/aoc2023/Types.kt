@@ -12,6 +12,14 @@ interface Coordinate : Comparable<Coordinate> {
     override fun compareTo(other: Coordinate): Int {
         return compareValuesBy(this, other, { it.y }, { it.x })
     }
+
+    fun distanceTo(other: Coordinate): Int {
+        return abs(other.x - x) + abs(other.y - y)
+    }
+
+    fun isAdjacentTo(other: Point): Boolean {
+        return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
+    }
 }
 
 data class Point(override val x: Int, override val y: Int) : Coordinate {
@@ -67,14 +75,6 @@ enum class Direction {
             S -> N
             W -> E
         }
-}
-
-fun Coordinate.isAdjacentTo(other: Point): Boolean {
-    return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
-}
-
-fun Point.distanceTo(other: Point): Int {
-    return abs(other.x - x) + abs(other.y - y)
 }
 
 class PointTest {

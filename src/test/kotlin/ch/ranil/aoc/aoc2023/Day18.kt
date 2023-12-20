@@ -5,6 +5,8 @@ import ch.ranil.aoc.PrintColor
 import ch.ranil.aoc.aoc2023.Direction.*
 import ch.ranil.aoc.printColor
 import org.junit.jupiter.api.Test
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.test.assertEquals
 
 class Day18 : AbstractDay() {
@@ -30,35 +32,32 @@ class Day18 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Int {
-        val trenchMap = mutableSetOf(Point(0, 0))
+        val area = digTrench(input)
+        val filling = area.getFilling()
 
-        val area = digTrench(input, trenchMap)
-        print(area, emptySet())
+        print(area, filling)
 
-        val surroundingArea = area.getSurroundingArea()
-        val size = (area.bottomRight.x - area.topLeft.x + 1) * (area.bottomRight.y - area.topLeft.y + 1)
-
-        return size - surroundingArea.size
+        return filling.size + area.trenchPoints.size
     }
 
     private fun digTrench(
         input: List<String>,
-        trenchMap: MutableSet<Point>,
     ): Area {
         var topLeft = Point(0, 0)
         var bottomRight = Point(0, 0)
-        val trenchPoints = input
+        val trenchPoints = mutableSetOf(Point(0, 0))
+        input
             .map { it.parse() }
-            .flatMap { (direction, length, _) ->
-                val startPoint = trenchMap.last()
-                val trenchPoints = (1..length).map { steps ->
-                    startPoint.move(steps, direction)
+            .forEach { (direction, length, _) ->
+                val startPoint = trenchPoints.last()
+                val nextTrenchPoints = (1..length).map { steps ->
+                    val nextTrenchPoint = startPoint.move(steps, direction)
+                    topLeft = Point(min(topLeft.x, nextTrenchPoint.x), min(topLeft.y, nextTrenchPoint.y))
+                    bottomRight = Point(max(bottomRight.x, nextTrenchPoint.x), max(bottomRight.y, nextTrenchPoint.y))
+                    nextTrenchPoint
                 }
-                topLeft = (trenchPoints + topLeft).min()
-                bottomRight = (trenchPoints + bottomRight).max()
-                trenchMap.addAll(trenchPoints)
-                trenchPoints
-            }.toSet()
+                trenchPoints.addAll(nextTrenchPoints)
+            }
 
         return Area(topLeft, bottomRight, trenchPoints)
     }
@@ -130,15 +129,51 @@ class Day18 : AbstractDay() {
                 }
             return surroundingArea
         }
+
+        fun getFilling(): Set<Point> {
+            val horizontal = trenchPoints
+                .groupBy { it.y }
+                .values
+                .flatMap { row ->
+                    row
+                        .sortedBy { it.x }
+                        .getFilling { p, i -> p.move(i, E) }
+                }
+
+            val vertical = trenchPoints
+                .groupBy { it.x }
+                .values
+                .flatMap { row ->
+                    row
+                        .sortedBy { it.y }
+                        .getFilling { p, i -> p.move(i, S) }
+                }
+            return horizontal.intersect(vertical.toSet())
+        }
+
+        private fun List<Point>.getFilling(shiftPoint: (Point, Int) -> Point): Set<Point> {
+            val pointsInLine = this
+            val filling = mutableSetOf<Point>()
+            var i = 0
+            while (i < pointsInLine.size - 1) {
+                val p1 = pointsInLine[i]
+                val p2 = pointsInLine[i + 1]
+                val delta = p1.distanceTo(p2) - 1
+                val pointsBetweenP1P2 = List(delta) { shiftPoint(p1, it + 1) }
+                filling.addAll(pointsBetweenP1P2)
+                i++
+            }
+            return filling
+        }
     }
 
-    private fun print(area: Area, surroundingArea: Set<Point>) {
+    private fun print(area: Area, filling: Set<Point>) {
         (area.topLeft.y..area.bottomRight.y).forEach { y ->
             (area.topLeft.x..area.bottomRight.x).forEach { x ->
                 val p = Point(x, y)
                 when (p) {
+                    in filling -> printColor(PrintColor.YELLOW, '#')
                     in area.trenchPoints -> printColor(PrintColor.GREEN, '#')
-                    in surroundingArea -> print('.')
                     else -> print('#')
                 }
             }
