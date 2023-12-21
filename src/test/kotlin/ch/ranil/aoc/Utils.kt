@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 enum class PrintColor(val code: String) {
     RED("\u001b[31m"),
     GREEN("\u001b[32m"),
-    YELLOW("\u001b[33m")
+    YELLOW("\u001b[33m"),
 }
 
 fun <T> printColor(color: PrintColor, v: T) {
@@ -62,6 +62,23 @@ fun lcm(number1: Long, number2: Long): Long {
         lcm += absHigherNumber
     }
     return lcm
+}
+
+fun <T> bfs(
+    start: T,
+    stopCriteria: (T) -> Boolean = { false },
+    skipCriteria: (T) -> Boolean = { false },
+    next: (T) -> Collection<T>,
+): Set<T> {
+    val seen = mutableSetOf<T>()
+    val queue = mutableListOf(start)
+    while (queue.isNotEmpty()) {
+        val current = queue.removeFirst()
+        if (stopCriteria(current)) return seen
+        if (skipCriteria(current)) continue
+        next(current)
+    }
+    return seen
 }
 
 class UtilsTests {
