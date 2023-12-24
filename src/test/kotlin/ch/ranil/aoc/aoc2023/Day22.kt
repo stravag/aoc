@@ -44,7 +44,7 @@ class Day22 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(7, compute2(testInput))
     }
 
     @Test
@@ -53,7 +53,6 @@ class Day22 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Int {
-
         val fallingBricks = FallingBricks(
             input
                 .mapIndexed { i, s -> Brick.parse(s, i) }
@@ -62,6 +61,17 @@ class Day22 : AbstractDay() {
 
         fallingBricks.settleBricks()
         return fallingBricks.countRemovableBricks()
+    }
+
+    private fun compute2(input: List<String>): Int {
+        val fallingBricks = FallingBricks(
+            input
+                .mapIndexed { i, s -> Brick.parse(s, i) }
+                .sortedBy { it.lowZ }.toMutableSet()
+        )
+
+        fallingBricks.settleBricks()
+        return fallingBricks.countFallingBricks()
     }
 
     private class FallingBricks(
@@ -86,6 +96,23 @@ class Day22 : AbstractDay() {
             return filter.count()
         }
 
+        fun countFallingBricks(): Int {
+            val bricksLookup = bricks.buildLookup()
+            return settledBricks.sumOf {
+                var count = 0
+                val queue = it.supporting(bricksLookup).toMutableList()
+                while (queue.isNotEmpty()) {
+                    val current = queue.removeFirst()
+                    val supportedBy = current.supportedBy(bricksLookup)
+                    if (supportedBy.size == 1) {
+                        count++
+                        queue.addAll(supportedBy)
+                    }
+                }
+                count
+            }
+        }
+
         private fun markSettledBricksSettled() {
             val bricksLookup = bricks.buildLookup()
             val unsettledBricks = bricks.filterNot { it in settledBricks }
@@ -98,10 +125,6 @@ class Day22 : AbstractDay() {
                 }
             }
         }
-    }
-
-    private fun compute2(input: List<String>): Int {
-        TODO()
     }
 
     private data class Brick(
