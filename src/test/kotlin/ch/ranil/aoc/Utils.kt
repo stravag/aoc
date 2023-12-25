@@ -47,6 +47,14 @@ fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) 
     }
 }
 
+fun List<String>.charForPoint(point: Point): Char? {
+    return this.getOrNull(point.y)?.getOrNull(point.x)
+}
+
+fun List<String>.containsPoint(point: Point): Boolean {
+    return point.y in indices && point.y in first().indices
+}
+
 fun Int.isEven(): Boolean = this % 2 == 0
 
 fun lcm(number1: Long, number2: Long): Long {
