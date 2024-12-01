@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.Point
 import ch.ranil.aoc.aoc2023.Day16.Direction.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -59,6 +60,10 @@ class Day16 : AbstractDay() {
         } while (beamCache.addAll(activeBeams))
 
         return energized.size
+    }
+
+    private infix fun Point.containedIn(map: List<String>): Boolean {
+        return map.getOrNull(y)?.getOrNull(x) != null
     }
 
     private fun List<String>.getChar(p: Point): Char? {

@@ -1,4 +1,4 @@
-package ch.ranil.aoc.aoc2023
+package ch.ranil.aoc
 
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
@@ -46,15 +46,6 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
         )
     }
 
-    @JvmName("containedInStrings")
-    infix fun containedIn(map: List<String>): Boolean {
-        return map.getOrNull(y)?.getOrNull(x) != null
-    }
-
-    infix fun containedIn(map: List<List<*>>): Boolean {
-        return map.getOrNull(y)?.getOrNull(x) != null
-    }
-
     fun move(steps: Int, direction: Direction): Point {
         return when (direction) {
             Direction.N -> copy(y = y - steps)
@@ -79,6 +70,11 @@ enum class Direction {
 
 class PointTest {
     @Test
+    fun testEdges() {
+        assertEquals(8, Point(0, 0).edges().size)
+    }
+
+    @Test
     fun testEdgesAndAdjacent() {
         val center = Point(0, 0)
         assertTrue(center.edges().all { edge -> edge.isAdjacentTo(center) })
@@ -93,10 +89,5 @@ class PointTest {
         assertEquals(1, zero.distanceTo(Point(-1, 0)))
         assertEquals(1, zero.distanceTo(Point(0, -1)))
         assertEquals(2, zero.distanceTo(Point(1, 1)))
-    }
-
-    @Test
-    fun testEdgesUnique() {
-        assertEquals(8, Point(0, 0).edges().distinct().size)
     }
 }

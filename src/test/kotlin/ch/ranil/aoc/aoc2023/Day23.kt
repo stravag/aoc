@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.Point
 import ch.ranil.aoc.charForPoint
 import ch.ranil.aoc.containsPoint
 import org.junit.jupiter.api.Test

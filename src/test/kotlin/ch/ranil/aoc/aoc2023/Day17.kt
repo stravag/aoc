@@ -1,10 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
-import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.PrintColor
-import ch.ranil.aoc.aoc2023.Direction.*
-import ch.ranil.aoc.print
-import ch.ranil.aoc.printColor
+import ch.ranil.aoc.*
+import ch.ranil.aoc.Direction.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -122,6 +119,10 @@ class Day17 : AbstractDay() {
         }
 
         throw IllegalArgumentException("Couldn't find path to $end")
+    }
+
+    private infix fun Point.containedIn(map: List<List<Int>>): Boolean {
+        return map.getOrNull(y)?.getOrNull(x) != null
     }
 
     data class HeatData(

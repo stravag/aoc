@@ -1,6 +1,5 @@
 package ch.ranil.aoc
 
-import ch.ranil.aoc.aoc2023.Point
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.max
