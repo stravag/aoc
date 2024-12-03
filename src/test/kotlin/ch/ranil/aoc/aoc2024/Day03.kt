@@ -8,7 +8,7 @@ class Day03 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        assertEquals(0, compute1(testInput))
+        assertEquals(161, compute1(testInput))
     }
 
     @Test
@@ -26,8 +26,20 @@ class Day03 : AbstractDay() {
         assertEquals(0, compute2(puzzleInput))
     }
 
+
     private fun compute1(input: List<String>): Int {
-        TODO()
+        return input
+            .sumOf { it.parse() }
+    }
+
+    private val regex = "mul\\(([0-9]{1,3}),([0-9]{1,3})\\)".toRegex()
+    private fun String.parse(): Int {
+        return regex
+            .findAll(this)
+            .sumOf { matchResult ->
+                val (_, i1, i2) = matchResult.groupValues
+                i1.toInt() * i2.toInt()
+            }
     }
 
     private fun compute2(input: List<String>): Int {
