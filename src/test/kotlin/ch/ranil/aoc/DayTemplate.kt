@@ -25,11 +25,11 @@ class DayTemplate : AbstractDay() {
         assertEquals(0, compute2(puzzleInput))
     }
 
-    private fun compute1(input: List<String>): Int {
+    private fun compute1(input: List<String>): Long {
         TODO()
     }
 
-    private fun compute2(input: List<String>): Int {
+    private fun compute2(input: List<String>): Long {
         TODO()
     }
 }
