@@ -25,9 +25,8 @@ class Day03 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(82868252, compute2(puzzleInput))
     }
-
 
     private fun compute1(input: List<String>): Int {
         return input
@@ -43,17 +42,16 @@ class Day03 : AbstractDay() {
         }
     }
 
-    private fun compute2(input: List<String>): Int {
-        return input
-            .sumOf { calculate2(it) }
+    private fun compute2(input: List<String>): Long {
+        val memory = input.joinToString(separator = "")
+        return calculate2(memory)
     }
 
     private val regex2 = "(mul\\(([0-9]{1,3}),([0-9]{1,3})\\)|(do\\(\\))|(don't\\(\\)))".toRegex()
-    private fun calculate2(input: String): Int {
-        println("Calculating row...")
+    private fun calculate2(input: String): Long {
         val matches = regex2.findAll(input).toList()
         var enabled = true
-        var sum = 0
+        var sum = 0L
         for (match in matches) {
             val op = match.groupValues.first()
 
@@ -65,9 +63,9 @@ class Day03 : AbstractDay() {
 
             if (op.startsWith("mul") && enabled) {
                 sum += calculate(match)
-            } else if (op.startsWith("do()")) {
+            } else if (op == "do()") {
                 enabled = true
-            } else if (op.startsWith("don't()")) {
+            } else if (op == "don't()") {
                 enabled = false
             }
         }
@@ -75,8 +73,8 @@ class Day03 : AbstractDay() {
         return sum
     }
 
-    private fun calculate(matchResult: MatchResult): Int {
+    private fun calculate(matchResult: MatchResult): Long {
         val (_, _, i1, i2) = matchResult.groupValues
-        return i1.toInt() * i2.toInt()
+        return i1.toLong() * i2.toLong()
     }
 }
