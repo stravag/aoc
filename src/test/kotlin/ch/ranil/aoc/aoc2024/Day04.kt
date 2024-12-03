@@ -1,9 +1,10 @@
-package ch.ranil.aoc
+package ch.ranil.aoc.aoc2024
 
+import ch.ranil.aoc.AbstractDay
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class DayTemplate : AbstractDay() {
+class Day04 : AbstractDay() {
 
     @Test
     fun part1Test() {
