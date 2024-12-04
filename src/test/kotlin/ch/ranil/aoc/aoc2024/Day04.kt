@@ -8,11 +8,6 @@ import kotlin.test.assertEquals
 class Day04 : AbstractDay() {
 
     @Test
-    fun part1Test() {
-        assertEquals(18, compute1(testInput))
-    }
-
-    @Test
     fun testSearchXmas() {
         val input = """
             ..X...
@@ -24,18 +19,33 @@ class Day04 : AbstractDay() {
     }
 
     @Test
+    fun part1Test() {
+        assertEquals(18, compute1(testInput))
+    }
+
+    @Test
     fun part1Puzzle() {
         assertEquals(2397, compute1(puzzleInput))
     }
 
     @Test
+    fun testSearchXmasCross() {
+        val input = """
+            M.S
+            .A.
+            M.S
+        """.trimIndent().lines()
+        assertEquals(1, searchXmasCross(Point(1, 1), input))
+    }
+
+    @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(9, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(1824, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -74,6 +84,31 @@ class Day04 : AbstractDay() {
         return 1
     }
 
+    private fun compute2(input: List<String>): Long {
+        var xmasCount = 0L
+        input.forEachIndexed { y, row ->
+            row.forEachIndexed { x, char ->
+                if (char == 'A') {
+                    xmasCount += searchXmasCross(Point(x, y), input)
+                }
+            }
+        }
+        return xmasCount
+    }
+
+    private fun searchXmasCross(point: Point, input: List<String>): Long {
+        val diag1 =
+            "${input.charForPoint(point.move(1, NW)) ?: '.'}A${input.charForPoint(point.move(1, SE)) ?: '.'}"
+        val diag2 =
+            "${input.charForPoint(point.move(1, SW)) ?: '.'}A${input.charForPoint(point.move(1, NE)) ?: '.'}"
+
+        val isDiag1 = (diag1 == "MAS" || diag1 == "SAM")
+        val isDiag2 = (diag2 == "MAS" || diag2 == "SAM")
+
+        return if (isDiag1 && isDiag2) 1 else 0
+    }
+
+
     private enum class Direction {
         N, E, S, W, NE, NW, SE, SW;
 
@@ -90,7 +125,7 @@ class Day04 : AbstractDay() {
             }
     }
 
-    private fun Point.move(steps: Int, direction: Direction): Point {
+    private fun Point.move(steps: Int = 1, direction: Direction): Point {
         return when (direction) {
             N -> copy(y = y - steps)
             E -> copy(x = x + steps)
@@ -101,10 +136,5 @@ class Day04 : AbstractDay() {
             SE -> move(steps, S).move(steps, E)
             SW -> move(steps, S).move(steps, W)
         }
-    }
-
-
-    private fun compute2(input: List<String>): Long {
-        TODO()
     }
 }

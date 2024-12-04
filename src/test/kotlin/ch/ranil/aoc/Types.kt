@@ -46,7 +46,7 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
         )
     }
 
-    fun move(steps: Int, direction: Direction): Point {
+    fun move(steps: Int = 1, direction: Direction): Point {
         return when (direction) {
             Direction.N -> copy(y = y - steps)
             Direction.E -> copy(x = x + steps)
