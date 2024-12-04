@@ -1,7 +1,9 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.*
-import ch.ranil.aoc.aoc2024.Day04.Direction.*
+import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.MovePointBySteps
+import ch.ranil.aoc.Point
+import ch.ranil.aoc.charForPoint
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -15,7 +17,7 @@ class Day04 : AbstractDay() {
             .A..A.
             XMAS.S
         """.trimIndent().lines()
-        assertEquals(1, searchXmas(Point(2, 0), SE, input))
+        assertEquals(1, searchXmas(Point(2, 0), Point::southEast, input))
     }
 
     @Test
@@ -53,35 +55,21 @@ class Day04 : AbstractDay() {
         input.forEachIndexed { y, row ->
             row.forEachIndexed { x, char ->
                 if (char == 'X') {
-                    xmasCount += countXmas(Point(x, y), input)
+                    xmasCount += Point.directions.sumOf { searchXmas(Point(x, y), it, input) }
                 }
             }
         }
         return xmasCount
     }
 
-    private fun countXmas(charLoc: Point, input: List<String>): Long {
-        val result = Direction
-            .entries
-            .map { direction ->
-                direction to searchXmas(charLoc, direction, input)
-            }
-
-        return result.sumOf { it.second }
-    }
-
-    private fun searchXmas(point: Point, direction: Direction, input: List<String>): Long {
-        var nextPoint: Point = point
-        for (i in "XMAS".indices) {
-            val desiredChar = "XMAS"[i]
-            val char = input.charForPoint(nextPoint)
-            if (char == desiredChar) {
-                nextPoint = nextPoint.move(1, direction)
-            } else {
-                return 0
-            }
-        }
-        return 1
+    private fun searchXmas(point: Point, move: MovePointBySteps, input: List<String>): Long {
+        val crossWord = listOf(
+            input.charForPoint(point),
+            input.charForPoint(move(point, 1)),
+            input.charForPoint(move(point, 2)),
+            input.charForPoint(move(point, 3)),
+        ).joinToString("")
+        return if (crossWord == "XMAS") 1 else 0
     }
 
     private fun compute2(input: List<String>): Long {
@@ -97,44 +85,21 @@ class Day04 : AbstractDay() {
     }
 
     private fun searchXmasCross(point: Point, input: List<String>): Long {
-        val diag1 =
-            "${input.charForPoint(point.move(1, NW)) ?: '.'}A${input.charForPoint(point.move(1, SE)) ?: '.'}"
-        val diag2 =
-            "${input.charForPoint(point.move(1, SW)) ?: '.'}A${input.charForPoint(point.move(1, NE)) ?: '.'}"
+        val diag1 = listOf(
+            input.charForPoint(point.northWest()),
+            input.charForPoint(point),
+            input.charForPoint(point.southEast()),
+        ).joinToString("")
+
+        val diag2 = listOf(
+            input.charForPoint(point.southWest()),
+            input.charForPoint(point),
+            input.charForPoint(point.northEast()),
+        ).joinToString("")
 
         val isDiag1 = (diag1 == "MAS" || diag1 == "SAM")
         val isDiag2 = (diag2 == "MAS" || diag2 == "SAM")
 
         return if (isDiag1 && isDiag2) 1 else 0
-    }
-
-
-    private enum class Direction {
-        N, E, S, W, NE, NW, SE, SW;
-
-        val opposite
-            get() = when (this) {
-                N -> S
-                E -> W
-                S -> N
-                W -> E
-                NE -> SW
-                NW -> SE
-                SE -> NW
-                SW -> SE
-            }
-    }
-
-    private fun Point.move(steps: Int = 1, direction: Direction): Point {
-        return when (direction) {
-            N -> copy(y = y - steps)
-            E -> copy(x = x + steps)
-            S -> copy(y = y + steps)
-            W -> copy(x = x - steps)
-            NE -> move(steps, N).move(steps, E)
-            NW -> move(steps, N).move(steps, W)
-            SE -> move(steps, S).move(steps, E)
-            SW -> move(steps, S).move(steps, W)
-        }
     }
 }

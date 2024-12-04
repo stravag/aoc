@@ -22,13 +22,18 @@ interface Coordinate : Comparable<Coordinate> {
     }
 }
 
+typealias MovePointBySteps = (Point, Int) -> Point
 data class Point(override val x: Int, override val y: Int) : Coordinate {
     override fun toString(): String = "($x,$y)"
 
-    fun north() = Point(x, y - 1)
-    fun east() = Point(x + 1, y)
-    fun south() = Point(x, y + 1)
-    fun west() = Point(x - 1, y)
+    fun north(step: Int = 1) = Point(x, y - step)
+    fun east(step: Int = 1) = Point(x + step, y)
+    fun south(step: Int = 1) = Point(x, y + step)
+    fun west(step: Int = 1) = Point(x - step, y)
+    fun northWest(step: Int = 1) = Point(x - step, y - step)
+    fun northEast(step: Int = 1) = Point(x + step, y - step)
+    fun southWest(step: Int = 1) = Point(x - step, y + step)
+    fun southEast(step: Int = 1) = Point(x + step, y + step)
 
     fun edges(): List<Point> {
         return listOf(
@@ -54,6 +59,19 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
             Direction.W -> copy(x = x - steps)
         }
     }
+
+    companion object {
+        val directions: List<MovePointBySteps> = listOf(
+            Point::north,
+            Point::east,
+            Point::south,
+            Point::west,
+            Point::northWest,
+            Point::northEast,
+            Point::southWest,
+            Point::southEast,
+        )
+    }
 }
 
 enum class Direction {
@@ -72,6 +90,24 @@ class PointTest {
     @Test
     fun testEdges() {
         assertEquals(8, Point(0, 0).edges().size)
+    }
+
+    @Test
+    fun testDirections() {
+        val point = Point(0, 0)
+        val points = listOf(
+            point.north(),
+            point.east(),
+            point.south(),
+            point.west(),
+            point.northWest(),
+            point.northEast(),
+            point.southWest(),
+            point.southEast(),
+        )
+
+        assertEquals(point.edges().size, points.size)
+        assertTrue { point.edges().all { points.contains(it) } }
     }
 
     @Test
