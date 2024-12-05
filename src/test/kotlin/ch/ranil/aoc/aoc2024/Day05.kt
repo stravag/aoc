@@ -8,7 +8,7 @@ class Day05 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        assertEquals(0, compute1(testInput))
+        assertEquals(143, compute1(testInput))
     }
 
     @Test
@@ -27,10 +27,62 @@ class Day05 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        TODO()
+        val (rules, numbers) = parse(input)
+
+        return numbers
+            .filter { orderedCorrectly(it, rules) }
+            .sumOf { it[it.size / 2] }
+            .toLong()
+    }
+
+    private fun orderedCorrectly(numbers: List<Int>, rules: Rules): Boolean {
+        numbers.indices.forEach { i ->
+            val numbersBefore = numbers.subList(0, i)
+            val number = numbers[i]
+            val numbersAfter = numbers.subList(i + 1, numbers.size)
+
+            val mustBeBefore = rules.mustBeBefore[number].orEmpty()
+            val beforeOk = numbersBefore.all { it in mustBeBefore }
+            if (!beforeOk) return false
+
+            val mustBeAfter = rules.mustBeAfter[number].orEmpty()
+            val afterOk = numbersAfter.all { it in mustBeAfter }
+            if (!afterOk) return false
+        }
+        return true
     }
 
     private fun compute2(input: List<String>): Long {
         TODO()
     }
+
+    private fun parse(input: List<String>): Pair<Rules, List<List<Int>>> {
+        val (rawRules, rawNumbers) = input
+            .partition { it.contains("|") }
+
+        val rules = parseRules(rawRules)
+        val numbers = rawNumbers
+            .filter { it.isNotEmpty() }
+            .map { it.split(",").map(String::toInt) }
+
+        return rules to numbers
+    }
+
+    private fun parseRules(input: List<String>): Rules {
+        val mustBeAfter = mutableMapOf<Int, List<Int>>()
+        val mustBeBefore = mutableMapOf<Int, List<Int>>()
+
+        input.forEach {
+            val (l, r) = it.split("|").map(String::toInt)
+            mustBeAfter.compute(l) { _, list -> list.orEmpty() + r }
+            mustBeBefore.compute(r) { _, list -> list.orEmpty() + l }
+        }
+
+        return Rules(mustBeAfter, mustBeBefore)
+    }
+
+    data class Rules(
+        val mustBeAfter: Map<Int, List<Int>>,
+        val mustBeBefore: Map<Int, List<Int>>,
+    )
 }
