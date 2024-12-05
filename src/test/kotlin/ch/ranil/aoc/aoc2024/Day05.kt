@@ -13,17 +13,17 @@ class Day05 : AbstractDay() {
 
     @Test
     fun part1Puzzle() {
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(5991, compute1(puzzleInput))
     }
 
     @Test
     fun part2Test() {
-        assertEquals(0, compute2(testInput))
+        assertEquals(123, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(5479, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -34,6 +34,19 @@ class Day05 : AbstractDay() {
             .sumOf { it[it.size / 2] }
             .toLong()
     }
+
+    private fun compute2(input: List<String>): Long {
+        val (rules, numbers) = parse(input)
+
+        return numbers
+            .filterNot { orderedCorrectly(it, rules) }
+            .map {
+                it.sortedWith { i1, i2 -> if (orderedCorrectly(listOf(i1, i2), rules)) 1 else -1 }
+            }
+            .sumOf { it[it.size / 2] }
+            .toLong()
+    }
+
 
     private fun orderedCorrectly(numbers: List<Int>, rules: Rules): Boolean {
         numbers.indices.forEach { i ->
@@ -50,10 +63,6 @@ class Day05 : AbstractDay() {
             if (!afterOk) return false
         }
         return true
-    }
-
-    private fun compute2(input: List<String>): Long {
-        TODO()
     }
 
     private fun parse(input: List<String>): Pair<Rules, List<List<Int>>> {
