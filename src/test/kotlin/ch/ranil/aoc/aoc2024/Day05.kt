@@ -27,71 +27,61 @@ class Day05 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        val (rules, numbers) = parse(input)
+        val (rules, updates) = parse(input)
 
-        return numbers
-            .filter { orderedCorrectly(it, rules) }
+        return updates
+            .filter { rules.obeyedBy(it) }
             .sumOf { it[it.size / 2] }
             .toLong()
     }
 
     private fun compute2(input: List<String>): Long {
-        val (rules, numbers) = parse(input)
+        val (rules, updates) = parse(input)
 
-        return numbers
-            .filterNot { orderedCorrectly(it, rules) }
+        return updates
+            .filterNot { rules.obeyedBy(it) }
             .map {
-                it.sortedWith { i1, i2 -> if (orderedCorrectly(listOf(i1, i2), rules)) 1 else -1 }
+                it.sortedWith { i1, i2 -> if (rules.obeyedBy(listOf(i1, i2))) 1 else -1 }
             }
             .sumOf { it[it.size / 2] }
             .toLong()
     }
 
 
-    private fun orderedCorrectly(numbers: List<Int>, rules: Rules): Boolean {
-        numbers.indices.forEach { i ->
-            val numbersBefore = numbers.subList(0, i)
-            val number = numbers[i]
-            val numbersAfter = numbers.subList(i + 1, numbers.size)
-
-            val mustBeBefore = rules.mustBeBefore[number].orEmpty()
-            val beforeOk = numbersBefore.all { it in mustBeBefore }
-            if (!beforeOk) return false
-
-            val mustBeAfter = rules.mustBeAfter[number].orEmpty()
-            val afterOk = numbersAfter.all { it in mustBeAfter }
-            if (!afterOk) return false
-        }
-        return true
-    }
-
     private fun parse(input: List<String>): Pair<Rules, List<List<Int>>> {
-        val (rawRules, rawNumbers) = input
+        val (rawRules, rawUpdates) = input
             .partition { it.contains("|") }
 
-        val rules = parseRules(rawRules)
-        val numbers = rawNumbers
+        val rules = Rules.parse(rawRules)
+        val updates = rawUpdates
             .filter { it.isNotEmpty() }
             .map { it.split(",").map(String::toInt) }
 
-        return rules to numbers
-    }
-
-    private fun parseRules(input: List<String>): Rules {
-        val mustBeAfter = mutableMapOf<Int, List<Int>>()
-        val mustBeBefore = mutableMapOf<Int, List<Int>>()
-
-        input.forEach {
-            val (l, r) = it.split("|").map(String::toInt)
-            mustBeAfter.compute(l) { _, list -> list.orEmpty() + r }
-            mustBeBefore.compute(r) { _, list -> list.orEmpty() + l }
-        }
-
-        return Rules(mustBeAfter, mustBeBefore)
+        return rules to updates
     }
 
     data class Rules(
-        val mustBeAfter: Map<Int, List<Int>>,
-        val mustBeBefore: Map<Int, List<Int>>,
-    )
+        private val mustBeAfter: Map<Int, List<Int>>,
+    ) {
+        fun obeyedBy(update: List<Int>): Boolean {
+            val seen = mutableSetOf<Int>()
+            update.forEach { number ->
+                val notOk = mustBeAfter[number].orEmpty().any { it in seen }
+                if (notOk) return false
+                seen.add(number)
+            }
+            return true
+        }
+
+        companion object {
+            fun parse(input: List<String>): Rules {
+                val map: Map<Int, List<Int>> = input
+                    .map { it.split("|").map(String::toInt) }
+                    .groupingBy { (l, _) -> l }
+                    .aggregate { _, acc, (_, r), _ -> acc.orEmpty() + r }
+
+                return Rules(map)
+            }
+        }
+    }
 }
