@@ -74,10 +74,10 @@ class Day21 : AbstractDay() {
 
         fun nextTilesFor(p: Point): Collection<Point> {
             return setOfNotNull(
-                p.move(1, Direction.N),
-                p.move(1, Direction.E),
-                p.move(1, Direction.S),
-                p.move(1, Direction.W),
+                p.move(Direction.N, 1),
+                p.move(Direction.E, 1),
+                p.move(Direction.S, 1),
+                p.move(Direction.W, 1),
             )
                 .filter { this.contains(it) }
                 .filter { it !in rocks }

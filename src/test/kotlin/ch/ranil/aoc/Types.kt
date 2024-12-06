@@ -3,6 +3,7 @@ package ch.ranil.aoc
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 interface Coordinate : Comparable<Coordinate> {
@@ -23,6 +24,7 @@ interface Coordinate : Comparable<Coordinate> {
 }
 
 typealias MovePointBySteps = (Point, Int) -> Point
+
 data class Point(override val x: Int, override val y: Int) : Coordinate {
     override fun toString(): String = "($x,$y)"
 
@@ -51,7 +53,7 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
         )
     }
 
-    fun move(steps: Int = 1, direction: Direction): Point {
+    fun move(direction: Direction, steps: Int = 1): Point {
         return when (direction) {
             Direction.N -> copy(y = y - steps)
             Direction.E -> copy(x = x + steps)
@@ -74,8 +76,8 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
     }
 }
 
-enum class Direction {
-    N, E, S, W;
+enum class Direction(val indicator: Char) {
+    N('^'), E('>'), S('v'), W('<');
 
     val opposite
         get() = when (this) {
@@ -84,6 +86,13 @@ enum class Direction {
             S -> N
             W -> E
         }
+
+    fun turn90(): Direction = when (this) {
+        N -> E
+        E -> S
+        S -> W
+        W -> N
+    }
 }
 
 class PointTest {
@@ -125,5 +134,22 @@ class PointTest {
         assertEquals(1, zero.distanceTo(Point(-1, 0)))
         assertEquals(1, zero.distanceTo(Point(0, -1)))
         assertEquals(2, zero.distanceTo(Point(1, 1)))
+    }
+
+    @Test
+    fun boardContainsPoint() {
+        val board = """
+            ..
+            ..
+        """.trimIndent().lines()
+        assertTrue(board.containsPoint(Point(0, 0)))
+        assertTrue(board.containsPoint(Point(0, 1)))
+        assertTrue(board.containsPoint(Point(1, 0)))
+        assertTrue(board.containsPoint(Point(1, 0)))
+
+        assertFalse(board.containsPoint(Point(-1, 0)))
+        assertFalse(board.containsPoint(Point(0, -1)))
+        assertFalse(board.containsPoint(Point(2, 0)))
+        assertFalse(board.containsPoint(Point(0, 2)))
     }
 }

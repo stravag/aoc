@@ -40,7 +40,7 @@ class Day18 : AbstractDay() {
             .map { it.parse1() }
             .forEach { (direction, length) ->
                 val lastPoint = points.last()
-                val nextPoint = lastPoint.move(length, direction)
+                val nextPoint = lastPoint.move(direction, length)
 
                 s1 += (lastPoint.x * nextPoint.y)
                 s2 += (lastPoint.y * nextPoint.x)
@@ -68,7 +68,7 @@ class Day18 : AbstractDay() {
             .map { it.parse2() }
             .forEach { (direction, length) ->
                 val lastPoint = points.last()
-                val nextPoint = lastPoint.move(length, direction)
+                val nextPoint = lastPoint.move(direction, length)
 
                 // simplified "shoelace" compared to part1
                 s += (lastPoint.y.toLong() + nextPoint.y.toLong()) * (lastPoint.x.toLong() - nextPoint.x.toLong())

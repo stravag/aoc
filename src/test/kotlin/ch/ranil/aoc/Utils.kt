@@ -37,6 +37,14 @@ fun List<Int>.product(): Int {
     return this.reduce { acc, t -> acc * t }
 }
 
+fun List<String>.allPointsWithChar(): List<Pair<Point, Char>> {
+    return this.flatMapIndexed { y, s ->
+        s.mapIndexed { x, c ->
+            Point(x, y) to c
+        }
+    }
+}
+
 fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
     forEachIndexed { y, s ->
         s.forEachIndexed { x, c ->
@@ -51,7 +59,7 @@ fun List<String>.charForPoint(point: Point): Char? {
 }
 
 fun List<String>.containsPoint(point: Point): Boolean {
-    return point.y in indices && point.y in first().indices
+    return point.y in indices && point.x in first().indices
 }
 
 fun Int.isEven(): Boolean = this % 2 == 0
