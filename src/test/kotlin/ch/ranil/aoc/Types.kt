@@ -6,26 +6,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-interface Coordinate : Comparable<Coordinate> {
-    val x: Int
-    val y: Int
-
-    override fun compareTo(other: Coordinate): Int {
-        return compareValuesBy(this, other, { it.y }, { it.x })
-    }
-
-    fun distanceTo(other: Coordinate): Int {
-        return abs(other.x - x) + abs(other.y - y)
-    }
-
-    fun isAdjacentTo(other: Point): Boolean {
-        return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
-    }
-}
-
 typealias MovePointBySteps = (Point, Int) -> Point
 
-data class Point(override val x: Int, override val y: Int) : Coordinate {
+data class Point(val x: Int, val y: Int) {
     override fun toString(): String = "($x,$y)"
 
     fun north(step: Int = 1) = Point(x, y - step)
@@ -60,6 +43,14 @@ data class Point(override val x: Int, override val y: Int) : Coordinate {
             Direction.S -> copy(y = y + steps)
             Direction.W -> copy(x = x - steps)
         }
+    }
+
+    fun distanceTo(other: Point): Int {
+        return abs(other.x - x) + abs(other.y - y)
+    }
+
+    fun isAdjacentTo(other: Point): Boolean {
+        return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
     }
 
     companion object {
@@ -145,7 +136,7 @@ class PointTest {
         assertTrue(board.containsPoint(Point(0, 0)))
         assertTrue(board.containsPoint(Point(0, 1)))
         assertTrue(board.containsPoint(Point(1, 0)))
-        assertTrue(board.containsPoint(Point(1, 0)))
+        assertTrue(board.containsPoint(Point(1, 1)))
 
         assertFalse(board.containsPoint(Point(-1, 0)))
         assertFalse(board.containsPoint(Point(0, -1)))
