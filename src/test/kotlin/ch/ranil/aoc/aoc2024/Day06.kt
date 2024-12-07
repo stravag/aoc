@@ -25,12 +25,12 @@ class Day06 : AbstractDay() {
             .^.
             .#.
         """.trimIndent().lines()
-        assertEquals(1, compute2(input))
+        assertEquals(1, compute2(input, debug = true))
     }
 
     @Test
     fun part2Test() {
-        assertEquals(6, compute2(testInput))
+        assertEquals(6, compute2(testInput, debug = true))
     }
 
     @Test
@@ -44,12 +44,12 @@ class Day06 : AbstractDay() {
     }
 
 
-    private fun compute2(input: List<String>): Int {
+    private fun compute2(input: List<String>, debug: Boolean = false): Int {
         val path = Map(input).walk()
         return path
             .drop(1) // no obstruction on starting position
             .sumOf { pointOnPath ->
-                Map(input, addedObstacle = pointOnPath).isLoop()
+                Map(input, addedObstacle = pointOnPath).isLoop(debug)
             }
     }
 
@@ -79,12 +79,13 @@ class Day06 : AbstractDay() {
                 }
             }
 
-            print(path)
+            println("Walked Path")
+            this.print(path)
 
             return path
         }
 
-        fun isLoop(): Int {
+        fun isLoop(debug: Boolean): Int {
             var point = startingPoint
             var direction = N
             val path = mutableSetOf<Pair<Point, Direction>>()
@@ -97,11 +98,17 @@ class Day06 : AbstractDay() {
                 }
             }
 
+            if (debug) {
+                println("Found Loop")
+                this.print(path)
+            }
+
             return 1
         }
 
-        fun print(seen: Set<Point>) {
-            println()
+        @JvmName("print2")
+        private fun print(seen: Set<Pair<Point, Direction>>) = this.print(seen.map { it.first }.toSet())
+        private fun print(seen: Set<Point>) {
             val firstPoint = seen.firstOrNull() ?: Point(1, -1)
             val lastPoint = seen.lastOrNull() ?: Point(1, -1)
             board.print { p, c ->

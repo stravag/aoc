@@ -46,12 +46,16 @@ fun List<String>.allPointsWithChar(): List<Pair<Point, Char>> {
 }
 
 fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
+    println("+" + "-".repeat(first().length) + "+")
     forEachIndexed { y, s ->
         s.forEachIndexed { x, c ->
+            if (x == 0) print('|')
             printChar(Point(x, y), c)
+            if (x == s.length - 1) print('|')
         }
         println()
     }
+    println("+" + "-".repeat(first().length) + "+")
 }
 
 fun List<String>.charForPoint(point: Point): Char? {
