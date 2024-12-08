@@ -1,9 +1,9 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.MovePointBySteps
-import ch.ranil.aoc.Point
-import ch.ranil.aoc.charForPoint
+import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.types.MovePointBySteps
+import ch.ranil.aoc.common.types.Point
+import ch.ranil.aoc.common.charForPoint
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

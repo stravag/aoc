@@ -2,7 +2,7 @@ package ch.ranil.aoc.aoc2022
 
 import ch.ranil.aoc.aoc2022.Day02.Outcome.*
 import ch.ranil.aoc.aoc2022.Day02.Shape.*
-import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.common.AbstractDay
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

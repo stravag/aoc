@@ -1,6 +1,6 @@
 package ch.ranil.aoc.aoc2023
 
-import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.aoc2023.Day07.Card.Companion.toCard1
 import ch.ranil.aoc.aoc2023.Day07.Card.Companion.toCard2
 import ch.ranil.aoc.aoc2023.Day07.Hand.Companion.toHand

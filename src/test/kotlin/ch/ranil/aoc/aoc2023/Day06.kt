@@ -1,7 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
-import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.product
+import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.product
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

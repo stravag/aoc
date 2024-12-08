@@ -1,10 +1,11 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.*
-import ch.ranil.aoc.PrintColor.GREEN
-import ch.ranil.aoc.PrintColor.RED
+import ch.ranil.aoc.common.*
+import ch.ranil.aoc.common.PrintColor.GREEN
+import ch.ranil.aoc.common.PrintColor.RED
+import ch.ranil.aoc.common.types.AbstractMap
+import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
-import kotlin.math.abs
 import kotlin.test.assertEquals
 
 class Day08 : AbstractDay() {
@@ -47,95 +48,69 @@ class Day08 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        val knownAntennas = mutableMapOf<Char, List<Point>>()
-        val uniqueAntiNodes = mutableSetOf<Point>()
-        input.forEachPointWithChar { antenna, frequency ->
-            if (frequency != '.') {
-                val matchingAntennas = knownAntennas[frequency].orEmpty()
-                matchingAntennas.forEach { matchingAntenna ->
-                    val antiNodes = getAntiNodes(antenna, matchingAntenna)
-                        .filter { input.containsPoint(it) }
-                    uniqueAntiNodes.addAll(antiNodes)
-                }
-                knownAntennas.compute(frequency) { _, acc -> acc.orEmpty() + antenna }
-            }
-        }
-
-        input.print { point, c ->
-            when {
-                uniqueAntiNodes.contains(point) -> printColor(RED, '#')
-                c == '.' -> print(c)
-                else -> printColor(GREEN, c)
-            }
-        }
-
-        return uniqueAntiNodes.size.toLong()
+        return Map(input).antiNodes1()
     }
 
     private fun compute2(input: List<String>): Long {
-        val knownAntennas = mutableMapOf<Char, List<Point>>()
-        val uniqueAntiNodes = mutableSetOf<Point>()
-        input.forEachPointWithChar { antenna, frequency ->
-            if (frequency != '.') {
-                val matchingAntennas = knownAntennas[frequency].orEmpty()
-                matchingAntennas.forEach { matchingAntenna ->
-                    val antiNodes = getAntiNodes2(antenna, matchingAntenna, input)
-                    uniqueAntiNodes.addAll(antiNodes)
+        return Map(input).antiNodes2()
+    }
+
+    private class Map(input: List<String>) : AbstractMap(input) {
+        fun antiNodes1(): Long {
+            return compute { p1, p2 ->
+                val (dX, dY) = p1.diffTo(p2)
+                setOf(
+                    Point(p1.x + dX, p1.y + dY),
+                    Point(p1.x - dX, p1.y - dY),
+                    Point(p2.x + dX, p2.y + dY),
+                    Point(p2.x - dX, p2.y - dY),
+                ).minus(p1).minus(p2).filter(::isPointInMap)
+            }
+        }
+
+        fun antiNodes2(): Long {
+            return compute { p1, p2 ->
+                val (dX, dY) = p1.diffTo(p2)
+                val antiNodes1 = p1.walkInLine { Point(it.x + dX, it.y + dY) }
+                val antiNodes2 = p1.walkInLine { Point(it.x - dX, it.y - dY) }
+                antiNodes1 + antiNodes2 + p1
+            }
+        }
+
+        private fun Point.walkInLine(step: (Point) -> Point): Set<Point> {
+            var p = step(this)
+            val pointsInLine = mutableSetOf<Point>()
+            while (isPointInMap(p)) {
+                pointsInLine.add(p)
+                p = step(p)
+            }
+            return pointsInLine
+        }
+
+        private fun compute(antiNodes: (Point, Point) -> Collection<Point>): Long {
+            val knownAntennas = mutableMapOf<Char, List<Point>>()
+            val uniqueAntiNodes = mutableSetOf<Point>()
+
+            allPoints()
+                .filter { charFor(it) != '.' }
+                .forEach { antenna ->
+                    val frequency = charFor(antenna)
+                    val nodes = knownAntennas[frequency]
+                        .orEmpty()
+                        .flatMap { antiNodes(antenna, it) }
+                    uniqueAntiNodes.addAll(nodes)
+                    knownAntennas.compute(frequency) { _, acc -> acc.orEmpty() + antenna }
                 }
-                knownAntennas.compute(frequency) { _, acc -> acc.orEmpty() + antenna }
+
+            printMap { point, c ->
+                when {
+                    uniqueAntiNodes.contains(point) -> printColor(RED, '#')
+                    c == '.' -> print(c)
+                    else -> printColor(GREEN, c)
+                }
             }
+
+            return uniqueAntiNodes.size.toLong()
         }
-
-        input.print { point, c ->
-            when {
-                uniqueAntiNodes.contains(point) -> printColor(RED, '#')
-                c == '.' -> print(c)
-                else -> printColor(GREEN, c)
-            }
-        }
-
-        return uniqueAntiNodes.size.toLong()
-    }
-
-    private fun getAntiNodes(p1: Point, p2: Point): Set<Point> {
-        val dX = p1.x - p2.x
-        val dY = p1.y - p2.y
-        val antiNodes = setOf(
-            Point(p1.x + dX, p1.y + dY),
-            Point(p1.x - dX, p1.y - dY),
-            Point(p2.x + dX, p2.y + dY),
-            Point(p2.x - dX, p2.y - dY),
-        )
-        val antiNodesMinusAntennas = antiNodes.minus(p1).minus(p2)
-        return antiNodesMinusAntennas
-    }
-
-    private fun getAntiNodes2(p1: Point, p2: Point, input: List<String>): Set<Point> {
-        val dX = p1.x - p2.x
-        val dY = p1.y - p2.y
-
-        val antiNodes1 = walkInLine(
-            point = p1,
-            step = { Point(it.x + dX, it.y + dY) },
-            input = input
-        )
-
-        val antiNodes2 = walkInLine(
-            point = p1,
-            step = { Point(it.x - dX, it.y - dY) },
-            input = input
-        )
-
-        return antiNodes1 + antiNodes2 + p1
-    }
-
-    private fun walkInLine(point: Point, step: (Point) -> Point, input: List<String>): Set<Point> {
-        var p = step(point)
-        val pointsInLine = mutableSetOf<Point>()
-        while (input.containsPoint(p)) {
-            pointsInLine.add(p)
-            p = step(p)
-        }
-        return pointsInLine
     }
 }

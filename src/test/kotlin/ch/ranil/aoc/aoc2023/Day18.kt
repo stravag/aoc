@@ -1,9 +1,9 @@
 package ch.ranil.aoc.aoc2023
 
-import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.Direction
-import ch.ranil.aoc.Direction.*
-import ch.ranil.aoc.Point
+import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.types.Direction
+import ch.ranil.aoc.common.types.Direction.*
+import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.test.assertEquals

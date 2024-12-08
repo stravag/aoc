@@ -1,4 +1,4 @@
-package ch.ranil.aoc
+package ch.ranil.aoc.common
 
 import java.io.File
 

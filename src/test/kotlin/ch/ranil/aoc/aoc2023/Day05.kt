@@ -1,11 +1,10 @@
 package ch.ranil.aoc.aoc2023
 
-import ch.ranil.aoc.AbstractDay
+import ch.ranil.aoc.common.AbstractDay
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 class Day05 : AbstractDay() {

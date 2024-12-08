@@ -1,5 +1,6 @@
 package ch.ranil.aoc
 
+import ch.ranil.aoc.common.AbstractDay
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

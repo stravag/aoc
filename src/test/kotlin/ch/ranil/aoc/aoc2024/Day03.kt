@@ -1,8 +1,8 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.AbstractDay
-import ch.ranil.aoc.PrintColor
-import ch.ranil.aoc.printColor
+import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.PrintColor
+import ch.ranil.aoc.common.printColor
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

@@ -1,5 +1,6 @@
-package ch.ranil.aoc
+package ch.ranil.aoc.common
 
+import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.max

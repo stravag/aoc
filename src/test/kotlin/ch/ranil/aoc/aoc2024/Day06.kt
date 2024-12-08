@@ -1,7 +1,9 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.*
-import ch.ranil.aoc.Direction.*
+import ch.ranil.aoc.common.*
+import ch.ranil.aoc.common.types.Direction
+import ch.ranil.aoc.common.types.Direction.*
+import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
