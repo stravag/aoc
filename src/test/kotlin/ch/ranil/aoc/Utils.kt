@@ -45,6 +45,14 @@ fun List<String>.allPointsWithChar(): List<Pair<Point, Char>> {
     }
 }
 
+fun List<String>.forEachPointWithChar(action: (Point, Char) -> Unit) {
+    return this.forEachIndexed { y, s ->
+        s.forEachIndexed { x, c ->
+            action(Point(x, y), c)
+        }
+    }
+}
+
 fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
     println("+" + "-".repeat(first().length) + "+")
     forEachIndexed { y, s ->
