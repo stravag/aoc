@@ -53,7 +53,7 @@ class Day17 : AbstractDay() {
 
         testInput.print { point, c ->
             if (heatData.map { it.path.single() }.contains(point)) {
-                printColor(PrintColor.GREEN, c)
+                printColor(c, PrintColor.GREEN)
             } else {
                 print(c)
             }
@@ -88,7 +88,7 @@ class Day17 : AbstractDay() {
 
         input.print { point, c ->
             if (path.contains(point) || point == end) {
-                printColor(PrintColor.GREEN, c)
+                printColor(c, PrintColor.GREEN)
             } else {
                 print(c)
             }
@@ -175,14 +175,5 @@ class Day17 : AbstractDay() {
                 nextState
             }
         }
-    }
-}
-
-private fun Point.move(direction: Direction): Point {
-    return when (direction) {
-        N -> this.north()
-        E -> this.east()
-        S -> this.south()
-        W -> this.west()
     }
 }

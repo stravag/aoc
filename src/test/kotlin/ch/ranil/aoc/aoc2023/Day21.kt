@@ -119,9 +119,9 @@ class Day21 : AbstractDay() {
             for (x in 0..<garden.width) {
                 val p = Point(x, y)
                 when (p) {
-                    in nxt -> printColor(PrintColor.YELLOW, 'O')
-                    in reachable -> printColor(PrintColor.GREEN, 'O')
-                    in garden.rocks -> printColor(PrintColor.RED, '#')
+                    in nxt -> printColor('O', PrintColor.YELLOW)
+                    in reachable -> printColor('O', PrintColor.GREEN)
+                    in garden.rocks -> printColor('#', PrintColor.RED)
                     in garden.tiles -> print('.')
                 }
             }

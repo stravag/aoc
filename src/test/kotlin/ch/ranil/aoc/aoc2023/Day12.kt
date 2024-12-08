@@ -251,9 +251,9 @@ class Day12 : AbstractDay() {
         val isValidArrangement = sizes == groupSizes
         if (print) {
             if (isValidArrangement) {
-                printlnColor(PrintColor.GREEN, puzzleString)
+                printlnColor(puzzleString, PrintColor.GREEN)
             } else {
-                printlnColor(PrintColor.RED, puzzleString)
+                printlnColor(puzzleString, PrintColor.RED)
             }
         }
         return isValidArrangement

@@ -13,13 +13,13 @@ enum class PrintColor(val code: String) {
     YELLOW("\u001b[33m"),
 }
 
-fun <T> printColor(color: PrintColor, v: T) {
+fun <T> printColor(v: T, color: PrintColor) {
     val reset = "\u001b[0m"
     print(color.code + v + reset)
 }
 
-fun <T> printlnColor(color: PrintColor, v: T) {
-    printColor(color, v)
+fun <T> printlnColor(v: T, color: PrintColor) {
+    printColor(v, color)
     println()
 }
 
@@ -36,14 +36,6 @@ fun LongRange.rangeOverlap(other: LongRange): LongRange {
 
 fun List<Int>.product(): Int {
     return this.reduce { acc, t -> acc * t }
-}
-
-fun List<String>.allPointsWithChar(): List<Pair<Point, Char>> {
-    return this.flatMapIndexed { y, s ->
-        s.mapIndexed { x, c ->
-            Point(x, y) to c
-        }
-    }
 }
 
 fun List<String>.forEachPointWithChar(action: (Point, Char) -> Unit) {

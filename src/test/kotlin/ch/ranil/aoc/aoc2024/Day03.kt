@@ -45,9 +45,9 @@ class Day03 : AbstractDay() {
             val op = match.groupValues.first()
 
             if (enabled) {
-                printColor(PrintColor.GREEN, "$op ")
+                printColor("$op ", PrintColor.GREEN)
             } else {
-                printColor(PrintColor.RED, "$op ")
+                printColor("$op ", PrintColor.RED)
             }
 
             if (op.startsWith("mul") && enabled) {

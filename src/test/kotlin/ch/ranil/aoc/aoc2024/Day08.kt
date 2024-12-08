@@ -104,9 +104,9 @@ class Day08 : AbstractDay() {
 
             printMap { point, c ->
                 when {
-                    uniqueAntiNodes.contains(point) -> printColor(RED, '#')
+                    uniqueAntiNodes.contains(point) -> printColor('#', RED)
                     c == '.' -> print(c)
-                    else -> printColor(GREEN, c)
+                    else -> printColor(c, GREEN)
                 }
             }
 

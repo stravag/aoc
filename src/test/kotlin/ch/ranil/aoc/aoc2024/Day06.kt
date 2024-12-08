@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2024
 
 import ch.ranil.aoc.common.*
+import ch.ranil.aoc.common.types.AbstractMap
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Direction.*
 import ch.ranil.aoc.common.types.Point
@@ -56,16 +57,15 @@ class Day06 : AbstractDay() {
     }
 
     class Map(
-        private val board: List<String>,
+        board: List<String>,
         private val addedObstacle: Point? = null,
-    ) {
-        private val startingPoint: Point = board
-            .allPointsWithChar()
-            .first { (_, c) -> c == '^' }
-            .first
+    ) : AbstractMap(board) {
+        private val startingPoint: Point = this
+            .allPoints()
+            .first { charFor(it) == '^' }
 
-        private fun isObstacle(point: Point) = board.charForPoint(point) == '#' || addedObstacle == point
-        private fun contains(point: Point): Boolean = board.containsPoint(point)
+        private fun isObstacle(point: Point) = charForOrNull(point) == '#' || addedObstacle == point
+        private fun contains(point: Point): Boolean = isPointInMap(point)
 
         fun walk(): Set<Point> {
             var point = startingPoint
@@ -113,11 +113,11 @@ class Day06 : AbstractDay() {
         private fun print(seen: Set<Point>) {
             val firstPoint = seen.firstOrNull() ?: Point(1, -1)
             val lastPoint = seen.lastOrNull() ?: Point(1, -1)
-            board.print { p, c ->
+            printMap { p, c ->
                 when {
-                    p == firstPoint -> printColor(PrintColor.GREEN, 'X')
-                    p == lastPoint -> printColor(PrintColor.RED, 'X')
-                    seen.contains(p) -> printColor(PrintColor.YELLOW, 'X')
+                    p == firstPoint -> printColor('X', PrintColor.GREEN)
+                    p == lastPoint -> printColor('X', PrintColor.RED)
+                    seen.contains(p) -> printColor('X', PrintColor.YELLOW)
                     p == addedObstacle -> print('O')
                     else -> print(c)
                 }
