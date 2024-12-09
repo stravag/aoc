@@ -8,6 +8,7 @@ class DayTemplate : AbstractDay() {
 
     @Test
     fun part1Test() {
+        debug = true
         assertEquals(0, compute1(testInput))
     }
 
@@ -18,6 +19,7 @@ class DayTemplate : AbstractDay() {
 
     @Test
     fun part2Test() {
+        debug = true
         assertEquals(0, compute2(testInput))
     }
 
