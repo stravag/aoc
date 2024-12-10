@@ -11,16 +11,26 @@ abstract class AbstractDay {
     protected val testInput get() = File("src/test/resources/$year/$day/test.txt").readLines()
     protected val test2Input get() = File("src/test/resources/$year/$day/test2.txt").readLines()
 
-    protected var debug: Boolean = false
+    @BeforeEach
+    fun setUp() {
+        Debug.disable()
+    }
+}
+
+object Debug {
+    private var debug: Boolean = false
+
+    fun enable() {
+        debug = true
+    }
+
+    fun disable() {
+        debug = false
+    }
 
     fun debug(block: () -> Unit) {
         if (debug) {
             block()
         }
-    }
-
-    @BeforeEach
-    fun setUp() {
-        debug = false
     }
 }

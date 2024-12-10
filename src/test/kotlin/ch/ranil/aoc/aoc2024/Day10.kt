@@ -1,7 +1,8 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.aoc2022.Day01.debug
 import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.Debug
+import ch.ranil.aoc.common.Debug.debug
 import ch.ranil.aoc.common.PrintColor
 import ch.ranil.aoc.common.printColor
 import ch.ranil.aoc.common.types.AbstractMap
@@ -13,7 +14,7 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part1TestDummy() {
-        debug = true
+        Debug.enable()
 
         assertEquals(
             4, compute1(
@@ -46,7 +47,7 @@ class Day10 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        debug = true
+        Debug.enable()
         assertEquals(36, compute1(testInput))
     }
 
@@ -56,33 +57,58 @@ class Day10 : AbstractDay() {
     }
 
     @Test
+    fun part2TestDummy() {
+        Debug.enable()
+        assertEquals(
+            3, compute2(
+                """
+            .....0.
+            ..4321.
+            ..5..2.
+            ..6543.
+            ..7..4.
+            ..8765.
+            ..9....
+        """.trimIndent().lines()
+            )
+        )
+    }
+
+    @Test
     fun part2Test() {
-        debug = true
-        assertEquals(0, compute2(testInput))
+        Debug.enable()
+        assertEquals(81, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(1925, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
         val map = Map(input)
-        return map.findTrails().toLong()
+        return map.countTrails().toLong()
     }
 
     private fun compute2(input: List<String>): Long {
-        TODO()
+        val map = Map(input)
+        return map.countTrailRatings().toLong()
     }
 
     private class Map(input: List<String>) : AbstractMap(input) {
-        fun findTrails(): Int {
+        fun countTrails(): Int {
             return allPoints()
                 .filter { heightAt(it) == 0 }
-                .sumOf { trailhead -> findTrails(trailhead) }
+                .sumOf { trailhead -> countTrails(trailhead) }
         }
 
-        private fun findTrails(point: Point, seen: MutableSet<Point> = mutableSetOf()): Int {
+        fun countTrailRatings(): Int {
+            return allPoints()
+                .filter { heightAt(it) == 0 }
+                .sumOf { trailhead -> countTrailRatings(trailhead) }
+        }
+
+        private fun countTrails(point: Point, seen: MutableSet<Point> = mutableSetOf()): Int {
 
             if (heightAt(point) == 9 && !seen.contains(point)) {
                 seen.add(point)
@@ -98,7 +124,27 @@ class Day10 : AbstractDay() {
                 .filter { heightAt(it) - heightAt(point) == 1 }
                 .filterNot(seen::contains)
                 .sumOf { candidate ->
-                    findTrails(candidate, seen)
+                    countTrails(candidate, seen)
+                }
+
+            return trails
+        }
+
+        private fun countTrailRatings(point: Point, seen: Set<Point> = setOf(point)): Int {
+
+            if (heightAt(point) == 9) {
+                debug {
+                    println("Found a path")
+                    print(seen + point)
+                }
+                return 1
+            }
+
+            val trails = listOf(point.north(), point.east(), point.south(), point.west())
+                .filter { heightAt(it) - heightAt(point) == 1 }
+                .filterNot(seen::contains)
+                .sumOf { candidate ->
+                    countTrailRatings(candidate, seen + candidate)
                 }
 
             return trails

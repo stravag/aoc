@@ -1,6 +1,7 @@
 package ch.ranil.aoc
 
 import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.Debug
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -8,7 +9,7 @@ class DayTemplate : AbstractDay() {
 
     @Test
     fun part1Test() {
-        debug = true
+        Debug.enable()
         assertEquals(0, compute1(testInput))
     }
 
@@ -19,7 +20,7 @@ class DayTemplate : AbstractDay() {
 
     @Test
     fun part2Test() {
-        debug = true
+        Debug.enable()
         assertEquals(0, compute2(testInput))
     }
 

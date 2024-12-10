@@ -1,6 +1,8 @@
 package ch.ranil.aoc.aoc2024
 
 import ch.ranil.aoc.common.AbstractDay
+import ch.ranil.aoc.common.Debug
+import ch.ranil.aoc.common.Debug.debug
 import ch.ranil.aoc.common.PrintColor.GREEN
 import ch.ranil.aoc.common.isEven
 import ch.ranil.aoc.common.printColor
@@ -12,7 +14,7 @@ class Day09 : AbstractDay() {
 
     @Test
     fun part1Test() {
-        debug = true
+        Debug.enable()
         assertEquals(1928, compute1(testInput))
     }
 
@@ -23,7 +25,7 @@ class Day09 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        debug = true
+        Debug.enable()
         assertEquals(2858, compute2(testInput))
     }
 
@@ -108,7 +110,7 @@ class Day09 : AbstractDay() {
                             add(spacePos + 1, Block.Free(space.size - file.size))
                         }
                         file.moved = true
-                        if (debug) this.printBlocks()
+                        debug { this.printBlocks() }
                         break
                     }
                 }
