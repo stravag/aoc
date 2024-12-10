@@ -13,7 +13,7 @@ abstract class AbstractDay {
 
     protected var debug: Boolean = false
 
-    protected fun debug(block: () -> Unit) {
+    fun debug(block: () -> Unit) {
         if (debug) {
             block()
         }
