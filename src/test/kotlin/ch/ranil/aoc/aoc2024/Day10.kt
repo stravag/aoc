@@ -97,57 +97,43 @@ class Day10 : AbstractDay() {
 
     private class Map(input: List<String>) : AbstractMap(input) {
         fun countTrails(): Int {
-            return allPoints()
-                .filter { heightAt(it) == 0 }
-                .sumOf { trailhead -> countTrails(trailhead) }
+            return countTrails { mutableSetOf() }
         }
 
         fun countTrailRatings(): Int {
+            return countTrails { mutableListOf() }
+        }
+
+        private fun countTrails(peakCollector: () -> MutableCollection<Point>): Int {
             return allPoints()
                 .filter { heightAt(it) == 0 }
-                .sumOf { trailhead -> countTrailRatings(trailhead) }
+                .sumOf { trailhead ->
+                    val peaks = peakCollector()
+                    countTrails(trailhead, reachedPeaks = peaks)
+                    peaks.size
+                }
         }
 
-        private fun countTrails(point: Point, seen: MutableSet<Point> = mutableSetOf()): Int {
-
-            if (heightAt(point) == 9 && !seen.contains(point)) {
-                seen.add(point)
-                debug {
-                    println("Found a path")
-                    print(seen)
-                }
-                return 1
-            }
-
-            seen.add(point)
-            val trails = listOf(point.north(), point.east(), point.south(), point.west())
-                .filter { heightAt(it) - heightAt(point) == 1 }
-                .filterNot(seen::contains)
-                .sumOf { candidate ->
-                    countTrails(candidate, seen)
-                }
-
-            return trails
-        }
-
-        private fun countTrailRatings(point: Point, seen: Set<Point> = setOf(point)): Int {
+        private fun countTrails(
+            point: Point,
+            seen: Set<Point> = setOf(point),
+            reachedPeaks: MutableCollection<Point>
+        ) {
 
             if (heightAt(point) == 9) {
+                reachedPeaks.add(point)
                 debug {
                     println("Found a path")
                     print(seen + point)
                 }
-                return 1
             }
 
-            val trails = listOf(point.north(), point.east(), point.south(), point.west())
+            listOf(point.north(), point.east(), point.south(), point.west())
                 .filter { heightAt(it) - heightAt(point) == 1 }
                 .filterNot(seen::contains)
-                .sumOf { candidate ->
-                    countTrailRatings(candidate, seen + candidate)
+                .forEach { candidate ->
+                    countTrails(candidate, seen + candidate, reachedPeaks)
                 }
-
-            return trails
         }
 
         private fun heightAt(point: Point): Int {
