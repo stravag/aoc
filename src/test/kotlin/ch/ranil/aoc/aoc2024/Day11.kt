@@ -31,12 +31,6 @@ class Day11 : AbstractDay() {
     }
 
     @Test
-    fun part2Test() {
-        Debug.enable()
-        assertEquals(0, compute2(""))
-    }
-
-    @Test
     fun part2Puzzle() {
         assertEquals(0, compute2("5 89749 6061 43 867 1965860 0 206250"))
     }
@@ -68,6 +62,14 @@ class Day11 : AbstractDay() {
     }
 
     private fun compute2(input: String): Long {
-        TODO()
+        var numbers = input.split(" ")
+            .map { it.trim().toLong() }
+
+        repeat(75) {
+            debug { numbers.joinToString(separator = " ") }
+            numbers = numbers.flatMap { applyRules(it) }
+        }
+
+        return numbers.size.toLong()
     }
 }
