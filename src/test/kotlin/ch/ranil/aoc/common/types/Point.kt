@@ -2,7 +2,12 @@ package ch.ranil.aoc.common.types
 
 import kotlin.math.abs
 
-data class Point(val x: Int, val y: Int) {
+data class Point(val x: Int, val y: Int) : Comparable<Point> {
+
+    override fun compareTo(other: Point): Int {
+        return compareValuesBy(this, other, Point::y, Point::x)
+    }
+
     override fun toString(): String = "($x,$y)"
 
     fun north(step: Int = 1) = Point(x, y - step)

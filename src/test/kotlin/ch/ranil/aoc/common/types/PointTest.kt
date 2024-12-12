@@ -13,6 +13,22 @@ class PointTest {
     }
 
     @Test
+    fun sortTest() {
+        assertEquals(
+            listOf(Point(3, 0), Point(4, 0), Point(5, 0)),
+            listOf(Point(4, 0), Point(5, 0), Point(3, 0)).sorted()
+        )
+        assertEquals(
+            listOf(Point(0, 3), Point(0, 4), Point(0, 5)),
+            listOf(Point(0, 4), Point(0, 5), Point(0, 3)).sorted()
+        )
+        assertEquals(
+            listOf(Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)),
+            listOf(Point(1, 1), Point(0, 0), Point(1, 0), Point(0, 1)).sorted()
+        )
+    }
+
+    @Test
     fun testDirections() {
         val point = Point(0, 0)
         val points = listOf(
@@ -39,7 +55,7 @@ class PointTest {
     @Test
     fun testDiffTo() {
         val zero = Point(0, 0)
-        assertEquals(0 to 0 , zero.diffTo(zero))
+        assertEquals(0 to 0, zero.diffTo(zero))
         assertEquals(0 to 1, zero.diffTo(Point(0, 1)))
         assertEquals(-1 to 0, zero.diffTo(Point(-1, 0)))
         assertEquals(0 to -1, zero.diffTo(Point(0, -1)))
@@ -49,7 +65,7 @@ class PointTest {
     @Test
     fun testDistance() {
         val zero = Point(0, 0)
-        assertEquals(0 , zero.distanceTo(zero))
+        assertEquals(0, zero.distanceTo(zero))
         assertEquals(1, zero.distanceTo(Point(1, 0)))
         assertEquals(1, zero.distanceTo(Point(0, 1)))
         assertEquals(1, zero.distanceTo(Point(-1, 0)))
