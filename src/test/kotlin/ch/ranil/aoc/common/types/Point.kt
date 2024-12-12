@@ -30,6 +30,15 @@ data class Point(val x: Int, val y: Int) {
         )
     }
 
+    fun directEdges(): List<Point> {
+        return listOf(
+            north(),
+            east(),
+            south(),
+            west(),
+        )
+    }
+
     fun move(direction: Direction, steps: Int = 1): Point {
         return when (direction) {
             Direction.N -> copy(y = y - steps)
