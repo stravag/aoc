@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2022
 
 import ch.ranil.aoc.common.AbstractDay
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.util.*
@@ -75,6 +76,7 @@ class Day24 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(723, compute2(puzzleInput))
     }

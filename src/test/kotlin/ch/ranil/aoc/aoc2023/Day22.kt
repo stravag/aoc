@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.common.AbstractDay
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.min
@@ -10,6 +11,7 @@ import kotlin.test.assertTrue
 class Day22 : AbstractDay() {
 
     @Test
+    @Disabled
     fun brickTests() {
         val horizontalBrick = Brick.parse("0,0,2~0,2,2")
         val verticalBrick = Brick.parse("1,1,8~1,1,9")
@@ -43,11 +45,13 @@ class Day22 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(7, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

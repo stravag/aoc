@@ -77,8 +77,6 @@ object Day10 : AbstractDay() {
                     tick()
                     register += cmd.i
                 }
-
-                else -> throw IllegalArgumentException()
             }
         }
 

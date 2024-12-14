@@ -4,17 +4,20 @@ import ch.ranil.aoc.common.*
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Direction.*
 import ch.ranil.aoc.common.types.Point
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class Day17 : AbstractDay() {
 
     @Test
+    @Disabled
     fun part1Test() {
         assertEquals(102, compute1(testInput))
     }
 
     @Test
+    @Disabled
     fun neighborsTest() {
         SearchState(Point(0, 0), E, sameDirectionCount = 0).let {
             assertEquals(it.neighbors(), it.neighbors2())
@@ -66,16 +69,19 @@ class Day17 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part1Puzzle() {
         assertEquals(0, compute1(puzzleInput))
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

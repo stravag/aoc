@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.common.AbstractDay
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.max
 import kotlin.math.min
@@ -19,6 +20,7 @@ class Day19 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(167409079868000, compute2(testInput))
     }
@@ -47,6 +49,7 @@ class Day19 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

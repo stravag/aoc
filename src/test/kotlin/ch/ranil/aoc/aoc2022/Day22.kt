@@ -247,7 +247,6 @@ class Day22 : AbstractDay() {
                 is Move -> move(action)
                 TurnLeft -> facing = facing.turn(TurnLeft)
                 TurnRight -> facing = facing.turn(TurnRight)
-                else -> throw IllegalArgumentException()
             }
         }
 
@@ -330,7 +329,6 @@ class Day22 : AbstractDay() {
                 is Move -> move(action)
                 TurnLeft -> facing = facing.turn(TurnLeft)
                 TurnRight -> facing = facing.turn(TurnRight)
-                else -> throw IllegalArgumentException()
             }
         }
 

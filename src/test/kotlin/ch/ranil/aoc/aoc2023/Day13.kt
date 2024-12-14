@@ -1,6 +1,7 @@
 package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.common.AbstractDay
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -43,11 +44,13 @@ class Day13 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

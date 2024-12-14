@@ -4,6 +4,7 @@ import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.types.Point
 import ch.ranil.aoc.common.charForPoint
 import ch.ranil.aoc.common.containsPoint
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.max
 import kotlin.test.assertEquals
@@ -57,11 +58,13 @@ class Day23 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

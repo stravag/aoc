@@ -39,8 +39,6 @@ class Day21 : AbstractDay() {
                 val b = getAnswer(monkey.b, monkeys)
                 monkey.operation(a, b)
             }
-
-            else -> throw IllegalArgumentException()
         }
     }
 

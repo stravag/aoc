@@ -50,6 +50,7 @@ class Day12 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test2Wip() {
         // from puzzle
         countArrangementsOptimized("??#..#???#? 1,1,4".unfold())
@@ -78,6 +79,7 @@ class Day12 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }

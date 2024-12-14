@@ -7,7 +7,7 @@ abstract class AbstractMap(
 ) {
     fun allPoints(): List<Point> {
         return input.flatMapIndexed { y, s ->
-            s.mapIndexed { x, c ->
+            s.mapIndexed { x, _ ->
                 Point(x, y)
             }
         }

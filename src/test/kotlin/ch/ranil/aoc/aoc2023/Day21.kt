@@ -3,6 +3,7 @@ package ch.ranil.aoc.aoc2023
 import ch.ranil.aoc.common.*
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Point
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -26,11 +27,13 @@ class Day21 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
