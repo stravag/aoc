@@ -19,5 +19,11 @@ enum class Direction(val indicator: Char) {
         S -> W
         W -> N
     }
+
+    companion object {
+        fun of(indicator: Char): Direction {
+            return entries.single { it.indicator == indicator }
+        }
+    }
 }
 
