@@ -178,20 +178,7 @@ class Day15 : AbstractDay() {
 
         fun moveRobot(direction: Direction) {
             val canMove = when (robotWouldHit(direction)) {
-                BOX -> {
-                    val allBoxesToMove = mutableListOf<Box>()
-                    val canMove = moveBox(boxes.getValue(robot.move(direction)), direction, allBoxesToMove)
-                    if (canMove) {
-                        when (direction) {
-                            N -> allBoxesToMove.sortedBy { it.pos1.y }.forEach { moveBox(it, direction) }
-                            E -> allBoxesToMove.sortedByDescending { it.pos1.x }.forEach { moveBox(it, direction) }
-                            W -> allBoxesToMove.sortedBy { it.pos1.x }.forEach { moveBox(it, direction) }
-                            S -> allBoxesToMove.sortedByDescending { it.pos1.y }.forEach { moveBox(it, direction) }
-                        }
-                    }
-                    canMove
-                }
-
+                BOX -> moveBox(boxes.getValue(robot.move(direction)), direction)
                 WALL -> false
                 SPACE -> true
                 ROBOT -> error("this shouldn't happen")
@@ -202,41 +189,35 @@ class Day15 : AbstractDay() {
             }
         }
 
-        fun moveBox(box: Box, direction: Direction) {
-            boxes.remove(box.pos1)
-            boxes.remove(box.pos2)
-            val newBoxPosition = box.move(direction)
-            boxes[newBoxPosition.pos1] = newBoxPosition
-            boxes[newBoxPosition.pos2] = newBoxPosition
-        }
+        fun moveBox(box: Box, direction: Direction): Boolean {
+            val seen = mutableSetOf<Box>()
+            val queue = mutableListOf(box)
+            while (queue.isNotEmpty()) {
+                val current = queue.removeFirst()
+                if (current in seen) continue
+                if (current.wouldHit(direction) == WALL) return false
+                val adjacentBoxes = when (direction) {
+                    N, S -> setOfNotNull(
+                        boxes[current.pos1.move(direction)],
+                        boxes[current.pos2.move(direction)],
+                    )
 
-        fun moveBox(box: Box, direction: Direction, allBoxesToMove: MutableList<Box>): Boolean {
-            val canMove = when (box.wouldHit(direction)) {
-                BOX -> {
-                    val boxesToMove = when (direction) {
-                        N, S -> setOfNotNull(
-                            boxes[box.pos1.move(direction)],
-                            boxes[box.pos2.move(direction)],
-                        )
-
-                        E -> setOf(boxes.getValue(box.pos2.move(direction)))
-                        W -> setOf(boxes.getValue(box.pos1.move(direction)))
-                    }
-                    boxesToMove
-                        .map { moveBox(it, direction, allBoxesToMove) }
-                        .reduce { acc, can -> acc && can }
+                    E -> setOfNotNull(boxes[current.pos2.move(direction)])
+                    W -> setOfNotNull(boxes[current.pos1.move(direction)])
                 }
-
-                WALL -> false
-                SPACE -> true
-                ROBOT -> error("this shouldn't happen")
+                queue.addAll(adjacentBoxes)
+                seen.add(current)
             }
 
-            if (canMove) {
-                allBoxesToMove.add(box)
+            seen.reversed().forEach {
+                boxes.remove(it.pos1)
+                boxes.remove(it.pos2)
+                val newBoxPosition = it.move(direction)
+                boxes[newBoxPosition.pos1] = newBoxPosition
+                boxes[newBoxPosition.pos2] = newBoxPosition
             }
 
-            return canMove
+            return true
         }
 
         fun print() {
@@ -307,8 +288,8 @@ class Day15 : AbstractDay() {
             SPACE,
         }
 
-        data class Box(val pos1: Point, val pos2: Point = pos1) {
-            fun move(direction: Direction) = Box(pos1.move(direction), pos2.move(direction))
+        data class Box(val num: Int, val pos1: Point, val pos2: Point = pos1) {
+            fun move(direction: Direction) = copy(pos1 = pos1.move(direction), pos2 = pos2.move(direction))
         }
 
         companion object {
@@ -323,7 +304,7 @@ class Day15 : AbstractDay() {
                         val point = Point(x, y)
                         when (c) {
                             '#' -> walls.add(point)
-                            'O' -> boxes[point] = Box(point)
+                            'O' -> boxes[point] = Box(boxes.size, point)
                             '@' -> robot = point
                         }
                     }
@@ -348,7 +329,7 @@ class Day15 : AbstractDay() {
                             }
 
                             'O' -> {
-                                val box = Box(point1, point2)
+                                val box = Box(boxes.size / 2, point1, point2)
                                 boxes[point1] = box
                                 boxes[point2] = box
                             }
