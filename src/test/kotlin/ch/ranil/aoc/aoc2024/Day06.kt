@@ -76,7 +76,7 @@ class Day06 : AbstractDay() {
                 path.add(point)
                 val p = point.move(direction)
                 when {
-                    isObstacle(p) -> direction = direction.turn90()
+                    isObstacle(p) -> direction = direction.turnRight()
                     else -> point = p
                 }
             }
@@ -94,7 +94,7 @@ class Day06 : AbstractDay() {
             while (path.add(point to direction)) {
                 val p = point.move(direction)
                 when {
-                    isObstacle(p) -> direction = direction.turn90()
+                    isObstacle(p) -> direction = direction.turnRight()
                     !contains(p) -> return 0
                     else -> point = p
                 }
