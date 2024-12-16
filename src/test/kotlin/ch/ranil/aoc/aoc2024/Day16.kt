@@ -2,14 +2,13 @@ package ch.ranil.aoc.aoc2024
 
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
-import ch.ranil.aoc.common.Debug.debug
 import ch.ranil.aoc.common.PrintColor
 import ch.ranil.aoc.common.printColor
 import ch.ranil.aoc.common.types.AbstractMap
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
-import java.util.PriorityQueue
+import java.util.*
 import kotlin.test.assertEquals
 
 class Day16 : AbstractDay() {
@@ -18,11 +17,6 @@ class Day16 : AbstractDay() {
     fun part1Test() {
         Debug.enable()
         assertEquals(7036, compute1(testInput))
-    }
-
-    @Test
-    fun part1Test2() {
-        Debug.enable()
         assertEquals(11048, compute1(test2Input))
     }
 
@@ -34,30 +28,34 @@ class Day16 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(45, compute2(testInput))
+        assertEquals(64, compute2(test2Input))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(679, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
         val maze = Maze(input)
-        return maze.navigate()
+        return maze.navigate().first
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(input: List<String>): Int {
+        val maze = Maze(input)
+        return maze.navigate().second
+
     }
 
     private class Maze(input: List<String>) : AbstractMap(input) {
         val start: Point = allPoints().single { charFor(it) == 'S' }
         val direction: Direction = Direction.E
 
-        fun navigate(): Int {
+        fun navigate(): Pair<Int, Int> {
             var minCost = Int.MAX_VALUE
             val seen = mutableMapOf<Pair<Point, Direction>, Int>()
+            val bestSeats = mutableSetOf<Point>()
             val queue = PriorityQueue(compareBy(Path::cost))
             queue.add(Path(listOf(start), direction, 0))
             while (queue.isNotEmpty()) {
@@ -70,11 +68,11 @@ class Day16 : AbstractDay() {
                 }
 
                 if (charFor(pathPoint.path.last()) == 'E') {
-                    debug { printMaze(pathPoint) }
                     if (pathPoint.cost > minCost) {
-                        return minCost
+                        break
                     }
                     minCost = pathPoint.cost
+                    bestSeats.addAll(pathPoint.path)
                 }
 
                 if (pathPoint.cost > bestKnownCost) continue // don't pursue suboptimal paths
@@ -88,16 +86,17 @@ class Day16 : AbstractDay() {
                 queue.addAll(nextPathPoints)
             }
 
-            return minCost
+            printMaze(bestSeats)
+            return minCost to bestSeats.size
         }
 
-        private fun printMaze(path: Path) {
-            println("Current Path Cost: ${path.cost}")
+        private fun printMaze(path: Set<Point>) {
             this.printMap { point, c ->
                 when {
+                    c == 'E' -> printColor(c, PrintColor.GREEN)
                     c == 'S' -> printColor(c, PrintColor.GREEN)
                     c == '#' -> printColor(c, PrintColor.RED)
-                    point in path.path -> printColor('O', PrintColor.YELLOW)
+                    point in path -> printColor('O', PrintColor.YELLOW)
                     else -> print(c)
                 }
             }
