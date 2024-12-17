@@ -1,7 +1,6 @@
 package ch.ranil.aoc.aoc2024
 
-import ch.ranil.aoc.common.AbstractDay
-import ch.ranil.aoc.common.Debug
+import ch.ranil.aoc.common.*
 import org.junit.jupiter.api.Test
 import kotlin.math.pow
 import kotlin.test.assertEquals
@@ -58,7 +57,17 @@ class Day17 : AbstractDay() {
     @Test
     fun part1Test() {
         Debug.enable()
-        assertEquals("4,6,3,5,6,3,5,2,1,0", compute1(testInput))
+        assertEquals(
+            "4,6,3,5,6,3,5,2,1,0", compute1(
+                """
+            Register A: 729
+            Register B: 0
+            Register C: 0
+
+            Program: 0,1,5,4,3,0
+        """.trimIndent().lines()
+            )
+        )
     }
 
     @Test
@@ -67,14 +76,25 @@ class Day17 : AbstractDay() {
     }
 
     @Test
-    fun part2Test() {
+    fun part2DummyTest() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(
+            "0,3,5,4,3,0", compute1(
+                """
+            Register A: 117440
+            Register B: 0
+            Register C: 0
+
+            Program: 0,3,5,4,3,0
+        """.trimIndent().lines()
+            )
+        )
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        Debug.enable()
+        assertEquals(99, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): String {
@@ -83,11 +103,14 @@ class Day17 : AbstractDay() {
         return computer.output
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(input: List<String>): Int {
+        val computer = Computer.parse(input)
+        computer.runProgram()
+        Debug.debug { println(computer.output) }
+        return 0
     }
 
-    private class Computer(
+    private data class Computer(
         var regA: Int,
         var regB: Int,
         var regC: Int,
@@ -109,6 +132,8 @@ class Day17 : AbstractDay() {
         }
 
         fun perform(instruction: Instruction) {
+            println()
+            printlnColor("regA=$regA, regB=$regB, regC=$regC", PrintColor.GREEN)
             when (instruction.opCode) {
                 0 -> adv(instruction.operand)
                 1 -> bxl(instruction.operand)
@@ -122,18 +147,24 @@ class Day17 : AbstractDay() {
         }
 
         fun adv(operand: Int) {
-            regA = (regA / 2.0.pow(combo(operand).toDouble())).toInt()
+            val comboOperand = combo(operand)
+            val newRegA = (regA / 2.0.pow(comboOperand.toDouble())).toInt()
+            regA = newRegA
+            println("[$pointer] adv: $newRegA ($regA 2^$comboOperand)")
             pointer++
         }
 
         fun bxl(operand: Int) {
-            regB = regB xor operand
+            val newRegB = regB xor operand
+            regB = newRegB
+            println("[$pointer] bxl: $newRegB ($regB xor $operand)")
             pointer++
         }
 
         fun bst(operand: Int) {
             val comboOperand = combo(operand)
             regB = comboOperand % 8
+            println("[$pointer] bst: $regB ($comboOperand % 8)")
             pointer++
         }
 
@@ -142,11 +173,14 @@ class Day17 : AbstractDay() {
                 pointer++
             } else {
                 pointer = operand
+                println("[$pointer] jnz: $operand")
             }
         }
 
         fun bxc(operand: Int) {
-            regB = regB xor regC
+            val newRegB = regB xor regC
+            regB = newRegB
+            println("[$pointer] bxc: $newRegB ($regB xor $regC)")
             pointer++
         }
 
@@ -154,16 +188,23 @@ class Day17 : AbstractDay() {
             val comboOperand = combo(operand)
             val result = comboOperand % 8
             outputs.add(result.toString())
+            printlnColor("[$pointer] out: $result (operand $operand, comboOperand $comboOperand)", PrintColor.YELLOW)
             pointer++
         }
 
         fun bdv(operand: Int) {
-            regB = (regA / 2.0.pow(combo(operand).toDouble())).toInt()
+            val comboOperand = combo(operand)
+            val newRegB = (regA / 2.0.pow(comboOperand.toDouble())).toInt()
+            regB = newRegB
+            println("[$pointer] bdv: $newRegB ($regA 2^$comboOperand)")
             pointer++
         }
 
         fun cdv(operand: Int) {
-            regC = (regA / 2.0.pow(combo(operand).toDouble())).toInt()
+            val comboOperand = combo(operand)
+            val newRegC = (regA / 2.0.pow(comboOperand.toDouble())).toInt()
+            regC = newRegC
+            println("[$pointer] cdv: $newRegC ($regA 2^$comboOperand)")
             pointer++
         }
 
