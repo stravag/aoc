@@ -7,6 +7,7 @@ import ch.ranil.aoc.common.printColor
 import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.math.floor
 import kotlin.test.assertEquals
 
 class Day18 : AbstractDay() {
@@ -14,146 +15,115 @@ class Day18 : AbstractDay() {
     @Test
     fun part1Test() {
         Debug.enable()
-
-        assertEquals(22, compute1(size = 7, take = 12, testInput))
+        assertEquals(22, compute1(size = 7, corruptionCount = 12, testInput))
     }
 
     @Test
     fun part1Puzzle() {
         Debug.enable()
-        assertEquals(0, compute1(size = 71, take = 1024, puzzleInput))
+        assertEquals(284, compute1(size = 71, corruptionCount = 1024, puzzleInput))
     }
 
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals("6,1", compute2(size = 7, corruptionCount = 12, testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        Debug.enable()
+        assertEquals("51,50", compute2(size = 71, corruptionCount = 1024, puzzleInput))
     }
 
-    private fun compute1(size: Int, take: Int, input: List<String>): Int {
-        val memory = Memory(size)
-        memory.addCorruptions(take, input)
-        memory.printMemory()
-        val distances = memory.bfs()
-        return distances[memory.end] ?: error("no path found")
+    private fun compute1(size: Int, corruptionCount: Int, input: List<String>): Int {
+        val memory = Memory(size, input)
+        val path = memory.shortestPathToEnd(corruptionCount)
+        memory.printMemory(path)
+        return path.size - 1
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(size: Int, corruptionCount: Int, input: List<String>): String {
+        val memory = Memory(size, input)
+
+        // binary search
+        var l = corruptionCount
+        var r = input.size - 1
+        while (l <= r) {
+            val m = floor((l + r) / 2.0).toInt()
+            val mPath = memory.shortestPathToEnd(m)
+            val nPath = memory.shortestPathToEnd(m + 1)
+            if (mPath.isNotEmpty() && nPath.isNotEmpty()) {
+                l = m + 1
+            } else if (mPath.isEmpty() && nPath.isEmpty()) {
+                r = m - 1
+            } else {
+                val i = listOf(mPath to m, nPath to m + 1)
+                    .single { it.first.isNotEmpty() }.second
+                return input[i]
+            }
+        }
+        error("nothing found")
     }
 
-    private class Memory(val size: Int) {
+    private class Memory(val size: Int, private val input: List<String>) {
         val start = Point(0, 0)
         val end = Point(size - 1, size - 1)
 
         private val corrupted: MutableSet<Point> = mutableSetOf()
 
-        fun addCorruptions(take: Int, input: List<String>) {
+        fun shortestPathToEnd(corruptionCount: Int): Set<Point> {
+            corrupted.clear()
+            addCorruptions(corruptionCount)
+            return shortestPathToEnd()
+        }
+
+        private fun shortestPathToEnd(): Set<Point> {
+            val seen = mutableMapOf(start to setOf(start))
+            val queue = LinkedList<Point>()
+            queue.add(start)
+            while (queue.isNotEmpty()) {
+                val current = queue.poll()
+                val neighbors = current.directEdges()
+                    .filter { it in this }
+                    .filter { it !in corrupted }
+                    .filter { it !in seen }
+
+                neighbors.forEach { next ->
+                    queue.add(next)
+                    seen[next] = seen.getValue(current) + next
+                }
+            }
+
+            return seen[end].orEmpty()
+        }
+
+        private fun addCorruptions(corruptionCount: Int) {
             input
-                .take(take)
+                .take(corruptionCount)
                 .map { line -> "[0-9]+".toRegex().findAll(line).map { it.value.toInt() }.toList() }
                 .forEach { (x, y) ->
                     corrupted.add(Point(x, y))
                 }
         }
 
-        fun Point.isInMemory(): Boolean {
-            return x in 0..<size && y in 0..<size
+        private operator fun contains(point: Point): Boolean {
+            return point.x in 0..<size && point.y in 0..<size
         }
 
-        fun bfs(): Map<Point, Int> {
-            val seen = mutableMapOf<Point, Int>()
-            val queue = LinkedList<Point>()
-            seen[start] = 0
-            queue.add(start)
-            while (queue.isNotEmpty()) {
-                val current = queue.poll()
-                val currentDistance = seen.getValue(current)
-                val neighbors = current.directEdges()
-                    .filter { it.isInMemory() }
-                    .filter { it !in corrupted }
-                    .filter { (seen[it] ?: Int.MAX_VALUE) > currentDistance + 1 }
-
-                neighbors.forEach {
-                    seen[it] = currentDistance + 1
-                    queue.add(it)
-                }
-            }
-            return seen
-        }
-
-        fun navigate(): Int {
-            var minSteps = Int.MAX_VALUE
-            val seen = mutableMapOf<Point, Int>()
-            val queue = PriorityQueue(compareBy(Path::steps))
-            queue.add(Path(Point(0, 0), 0))
-            while (queue.isNotEmpty()) {
-                val current = queue.poll()
-
-                val bestKnownSteps = seen.getOrDefault(current.point, Int.MAX_VALUE)
-                if (current.steps <= bestKnownSteps) {
-                    seen[current.point] = current.steps
-                } else {
-                    continue
-                }
-
-                if (current.point == Point(size - 1, size - 1)) {
-                    Debug.debug {
-                        println("Found a path in ${current.steps} steps")
-                        printMemory(current)
-                    }
-                    if (current.steps > minSteps) {
-                        break
-                    }
-                    minSteps = current.steps
-                }
-
-                if (current.steps > bestKnownSteps) continue // don't pursue suboptimal paths
-
-                val nextPathPoints = current.point
-                    .directEdges()
-                    .filter { it.isInMemory() } // stay in memory
-                    .filter { it !in seen }
-                    .filterNot { it in corrupted } // avoid corrupted
-                    .map { Path(it, current.steps + 1) }
-
-                queue.addAll(nextPathPoints)
-                Debug.debug {
-                    if (queue.size > 70_000) {
-                        println("Queue: $queue")
-                        println("Queue size: ${queue.size}")
-                        error("something is off")
-                    }
-                }
-            }
-
-            return minSteps
-        }
-
-        fun printMemory() = printMemory(Path(Point(-1, -1), 0))
-        fun printMemory(current: Path) {
+        fun printMemory(path: Collection<Point>) {
             for (y in 0..<size) {
                 for (x in 0..<size) {
                     val point = Point(x, y)
                     when (point) {
-                        current.point -> printColor('O', PrintColor.GREEN)
+                        in path -> printColor('O', PrintColor.GREEN)
                         in corrupted -> printColor('#', PrintColor.RED)
                         else -> print('.')
                     }
-
                 }
                 println()
             }
+            println()
         }
-
-        private data class Path(
-            val point: Point,
-            val steps: Int,
-        )
     }
 }
