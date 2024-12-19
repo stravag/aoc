@@ -72,8 +72,8 @@ class Day23 : AbstractDay() {
     private fun compute1(input: List<String>): Int {
         var best = 0
         val visited = mutableSetOf<Point>()
-        val start = Point(1, 0)
-        val end = Point(input.first().length - 2, input.size - 1)
+        val start = Point(0, 1)
+        val end = Point(input.size - 1, input.first().length - 2)
 
         fun dfs(p: Point, steps: Int): Int {
             if (p == end) {

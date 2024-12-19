@@ -35,7 +35,7 @@ class Day17 : AbstractDay() {
             assertEquals(it.neighbors(), it.neighbors2())
         }
 
-        SearchState(Point(0, 1), S, sameDirectionCount = 0).let {
+        SearchState(Point(1, 0), S, sameDirectionCount = 0).let {
             assertEquals(it.neighbors(), it.neighbors2())
         }
     }
@@ -50,7 +50,7 @@ class Day17 : AbstractDay() {
         directions.forEach { d ->
             val h = heatData.last()
             val p = h.path.single().move(d)
-            val v = testInput[p.y][p.x].digitToInt()
+            val v = testInput[p.row][p.col].digitToInt()
             heatData.add(HeatData(h.heatLoss + v, listOf(p)))
         }
 
@@ -89,7 +89,7 @@ class Day17 : AbstractDay() {
     private fun compute1(input: List<String>): Int {
         val graph = input.map { line -> line.map { it.digitToInt() } }
         val start = Point(0, 0)
-        val end = Point(graph.first().size - 1, graph.size - 1)
+        val end = Point(graph.size - 1, graph.first().size - 1)
         val (minHeat, path) = findShortestPath(start, end, graph)
 
         input.print { point, c ->
@@ -130,7 +130,7 @@ class Day17 : AbstractDay() {
     }
 
     private infix fun Point.containedIn(map: List<List<Int>>): Boolean {
-        return map.getOrNull(y)?.getOrNull(x) != null
+        return map.getOrNull(row)?.getOrNull(col) != null
     }
 
     data class HeatData(
@@ -141,7 +141,7 @@ class Day17 : AbstractDay() {
     }
 
     private fun List<List<Int>>.heatLossOf(point: Point): Int {
-        return this[point.y][point.x]
+        return this[point.row][point.col]
     }
 
     private fun compute2(input: List<String>): Int {

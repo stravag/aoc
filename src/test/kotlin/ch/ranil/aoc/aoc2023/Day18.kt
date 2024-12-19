@@ -42,8 +42,8 @@ class Day18 : AbstractDay() {
                 val lastPoint = points.last()
                 val nextPoint = lastPoint.move(direction, length)
 
-                s1 += (lastPoint.x * nextPoint.y)
-                s2 += (lastPoint.y * nextPoint.x)
+                s1 += (lastPoint.col * nextPoint.row)
+                s2 += (lastPoint.row * nextPoint.col)
                 edgeLength += length
                 points.add(nextPoint)
             }
@@ -71,7 +71,7 @@ class Day18 : AbstractDay() {
                 val nextPoint = lastPoint.move(direction, length)
 
                 // simplified "shoelace" compared to part1
-                s += (lastPoint.y.toLong() + nextPoint.y.toLong()) * (lastPoint.x.toLong() - nextPoint.x.toLong())
+                s += (lastPoint.row.toLong() + nextPoint.row.toLong()) * (lastPoint.col.toLong() - nextPoint.col.toLong())
                 s += length
 
                 points.add(nextPoint)

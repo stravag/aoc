@@ -95,7 +95,7 @@ class Day21 : AbstractDay() {
                 var start: Point? = null
                 input.forEachIndexed { y, s ->
                     s.forEachIndexed { x, c ->
-                        val p = Point(x, y)
+                        val p = Point(y, x)
                         when (c) {
                             '#' -> rocks.add(p)
                             '.' -> tiles.add(p)
@@ -120,7 +120,7 @@ class Day21 : AbstractDay() {
     private fun print(garden: Garden, reachable: Collection<Point>, nxt: Collection<Point>) {
         for (y in 0..<garden.height) {
             for (x in 0..<garden.width) {
-                val p = Point(x, y)
+                val p = Point(y, x)
                 when (p) {
                     in nxt -> printColor('O', PrintColor.YELLOW)
                     in reachable -> printColor('O', PrintColor.GREEN)

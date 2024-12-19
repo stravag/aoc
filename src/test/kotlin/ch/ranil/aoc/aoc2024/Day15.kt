@@ -172,7 +172,7 @@ class Day15 : AbstractDay() {
         fun coordinateSum(): Long {
             return boxes.values.distinct().sumOf { box ->
                 val pos = box.pos1
-                100L * pos.y + pos.x
+                100L * pos.row + pos.col
             }
         }
 
@@ -223,7 +223,7 @@ class Day15 : AbstractDay() {
         fun print() {
             for (y in 0..<maxY) {
                 for (x in 0..<maxX) {
-                    val p = Point(x, y)
+                    val p = Point(y, x)
                     when (thingAt(p)) {
                         ROBOT -> printColor('@', PrintColor.GREEN)
                         BOX -> printColor('O', PrintColor.YELLOW)
@@ -238,7 +238,7 @@ class Day15 : AbstractDay() {
         fun printExtended() {
             for (y in 0..<maxY) {
                 for (x in 0..<maxX) {
-                    val p = Point(x, y)
+                    val p = Point(y, x)
                     when (thingAt(p)) {
                         ROBOT -> printColor('@', PrintColor.GREEN)
                         BOX -> {
@@ -301,7 +301,7 @@ class Day15 : AbstractDay() {
                 var robot: Point? = null
                 input.forEachIndexed { y, line ->
                     line.forEachIndexed { x, c ->
-                        val point = Point(x, y)
+                        val point = Point(y, x)
                         when (c) {
                             '#' -> walls.add(point)
                             'O' -> boxes[point] = Box(boxes.size, point)
@@ -320,8 +320,8 @@ class Day15 : AbstractDay() {
                 var robot: Point? = null
                 input.forEachIndexed { y, line ->
                     line.forEachIndexed { x, c ->
-                        val point1 = Point(2 * x, y)
-                        val point2 = Point(2 * x + 1, y)
+                        val point1 = Point(y, 2 * x)
+                        val point2 = Point(y, 2 * x + 1)
                         when (c) {
                             '#' -> {
                                 walls.add(point1)

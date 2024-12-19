@@ -41,7 +41,7 @@ fun List<Int>.product(): Int {
 fun List<String>.forEachPointWithChar(action: (Point, Char) -> Unit) {
     return this.forEachIndexed { y, s ->
         s.forEachIndexed { x, c ->
-            action(Point(x, y), c)
+            action(Point(y, x), c)
         }
     }
 }
@@ -51,7 +51,7 @@ fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) 
     forEachIndexed { y, s ->
         s.forEachIndexed { x, c ->
             if (x == 0) print('|')
-            printChar(Point(x, y), c)
+            printChar(Point(y, x), c)
             if (x == s.length - 1) print('|')
         }
         println()
@@ -60,11 +60,11 @@ fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) 
 }
 
 fun List<String>.charForPoint(point: Point): Char? {
-    return this.getOrNull(point.y)?.getOrNull(point.x)
+    return this.getOrNull(point.row)?.getOrNull(point.col)
 }
 
 fun List<String>.containsPoint(point: Point): Boolean {
-    return point.y in indices && point.x in first().indices
+    return point.row in indices && point.col in first().indices
 }
 
 fun Int.isEven(): Boolean = this % 2 == 0

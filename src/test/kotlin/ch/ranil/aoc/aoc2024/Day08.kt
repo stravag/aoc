@@ -60,10 +60,10 @@ class Day08 : AbstractDay() {
             return compute { p1, p2 ->
                 val (dX, dY) = p1.diffTo(p2)
                 setOf(
-                    Point(p1.x + dX, p1.y + dY),
-                    Point(p1.x - dX, p1.y - dY),
-                    Point(p2.x + dX, p2.y + dY),
-                    Point(p2.x - dX, p2.y - dY),
+                    Point(p1.row + dY, p1.col + dX),
+                    Point(p1.row - dY, p1.col - dX),
+                    Point(p2.row + dY, p2.col + dX),
+                    Point(p2.row - dY, p2.col - dX),
                 ).minus(p1).minus(p2).filter(::isPointInMap)
             }
         }
@@ -71,8 +71,8 @@ class Day08 : AbstractDay() {
         fun antiNodes2(): Long {
             return compute { p1, p2 ->
                 val (dX, dY) = p1.diffTo(p2)
-                val antiNodes1 = p1.walkInLine { Point(it.x + dX, it.y + dY) }
-                val antiNodes2 = p1.walkInLine { Point(it.x - dX, it.y - dY) }
+                val antiNodes1 = p1.walkInLine { Point(it.row + dY, it.col + dX) }
+                val antiNodes2 = p1.walkInLine { Point(it.row - dY, it.col - dX) }
                 antiNodes1 + antiNodes2 + p1
             }
         }

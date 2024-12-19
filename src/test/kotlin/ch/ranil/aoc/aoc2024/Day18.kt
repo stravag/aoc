@@ -103,18 +103,18 @@ class Day18 : AbstractDay() {
                 .take(corruptionCount)
                 .map { line -> "[0-9]+".toRegex().findAll(line).map { it.value.toInt() }.toList() }
                 .forEach { (x, y) ->
-                    corrupted.add(Point(x, y))
+                    corrupted.add(Point(y, x))
                 }
         }
 
         private operator fun contains(point: Point): Boolean {
-            return point.x in 0..<size && point.y in 0..<size
+            return point.col in 0..<size && point.row in 0..<size
         }
 
         fun printMemory(path: Collection<Point>) {
             for (y in 0..<size) {
                 for (x in 0..<size) {
-                    val point = Point(x, y)
+                    val point = Point(y, x)
                     when (point) {
                         in path -> printColor('O', PrintColor.GREEN)
                         in corrupted -> printColor('#', PrintColor.RED)

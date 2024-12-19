@@ -111,8 +111,8 @@ class Day06 : AbstractDay() {
         @JvmName("print2")
         private fun print(seen: Set<Pair<Point, Direction>>) = this.print(seen.map { it.first }.toSet())
         private fun print(seen: Set<Point>) {
-            val firstPoint = seen.firstOrNull() ?: Point(1, -1)
-            val lastPoint = seen.lastOrNull() ?: Point(1, -1)
+            val firstPoint = seen.firstOrNull() ?: Point(-1, 1)
+            val lastPoint = seen.lastOrNull() ?: Point(-1, 1)
             printMap { p, c ->
                 when {
                     p == firstPoint -> printColor('X', PrintColor.GREEN)

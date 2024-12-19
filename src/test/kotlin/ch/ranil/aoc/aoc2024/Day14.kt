@@ -49,10 +49,10 @@ class Day14 : AbstractDay() {
         fun score(): Int {
             val mx = x / 2
             val my = y / 2
-            val q1 = robots.count { it.p.x < mx && it.p.y < my }
-            val q2 = robots.count { it.p.x < mx && it.p.y > my }
-            val q3 = robots.count { it.p.x > mx && it.p.y < my }
-            val q4 = robots.count { it.p.x > mx && it.p.y > my }
+            val q1 = robots.count { it.p.col < mx && it.p.row < my }
+            val q2 = robots.count { it.p.col < mx && it.p.row > my }
+            val q3 = robots.count { it.p.col > mx && it.p.row < my }
+            val q4 = robots.count { it.p.col > mx && it.p.row > my }
             return q1 * q2 * q3 * q4
         }
 
@@ -64,7 +64,7 @@ class Day14 : AbstractDay() {
         fun print() {
             for (y in 0..<y) {
                 for (x in 0..<x) {
-                    val p = Point(x, y)
+                    val p = Point(y, x)
                     val r = robots.count { it.p == p }
                     when (r) {
                         0 -> print(".")
@@ -87,7 +87,7 @@ class Day14 : AbstractDay() {
     private data class Robot(var p: Point, val vX: Int, val vY: Int) {
 
         fun move(maxX: Int, maxY: Int) {
-            val (x, y) = p.east(vX).south(vY)
+            val (y, x) = p.east(vX).south(vY)
             val wx = when {
                 x < 0 -> maxX + x
                 x >= maxX -> x - maxX
@@ -98,7 +98,7 @@ class Day14 : AbstractDay() {
                 y >= maxY -> y - maxY
                 else -> y
             }
-            p = Point(wx, wy)
+            p = Point(wy, wx)
         }
 
         companion object {
@@ -106,7 +106,7 @@ class Day14 : AbstractDay() {
                 val regex = """-?\d+""".toRegex()
                 val (pX, pY, vX, vY) = regex.findAll(s).map { it.value.toInt() }.toList()
 
-                return Robot(Point(pX, pY), vX, vY)
+                return Robot(Point(pY, pX), vX, vY)
             }
         }
     }

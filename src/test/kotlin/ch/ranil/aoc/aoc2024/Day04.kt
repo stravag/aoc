@@ -17,7 +17,7 @@ class Day04 : AbstractDay() {
             .A..A.
             XMAS.S
         """.trimIndent().lines()
-        assertEquals(1, searchXmas(Point(2, 0), Point::southEast, input))
+        assertEquals(1, searchXmas(Point(0, 2), Point::southEast, input))
     }
 
     @Test
@@ -55,7 +55,7 @@ class Day04 : AbstractDay() {
         input.forEachIndexed { y, row ->
             row.forEachIndexed { x, char ->
                 if (char == 'X') {
-                    xmasCount += Point.directions.sumOf { searchXmas(Point(x, y), it, input) }
+                    xmasCount += Point.directions.sumOf { searchXmas(Point(y, x), it, input) }
                 }
             }
         }
@@ -77,7 +77,7 @@ class Day04 : AbstractDay() {
         input.forEachIndexed { y, row ->
             row.forEachIndexed { x, char ->
                 if (char == 'A') {
-                    xmasCount += searchXmasCross(Point(x, y), input)
+                    xmasCount += searchXmasCross(Point(y, x), input)
                 }
             }
         }

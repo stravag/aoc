@@ -37,10 +37,10 @@ class Day16 : AbstractDay() {
         val xMax = input.first().count() - 1
         val yMax = input.count() - 1
 
-        val initialBeams = (0..xMax).map { x -> Beam(Point(x, 0), S) } +
-                (0..yMax).map { y -> Beam(Point(0, y), E) } +
-                (0..yMax).map { y -> Beam(Point(xMax, y), W) } +
-                (0..xMax).map { x -> Beam(Point(x, yMax), N) }
+        val initialBeams = (0..xMax).map { x -> Beam(Point(0, x), S) } +
+                (0..yMax).map { y -> Beam(Point(y, 0), E) } +
+                (0..yMax).map { y -> Beam(Point(y, xMax), W) } +
+                (0..xMax).map { x -> Beam(Point(yMax, x), N) }
 
         return initialBeams.maxOf { countEnergizedTiles(it, input) }
     }
@@ -63,11 +63,11 @@ class Day16 : AbstractDay() {
     }
 
     private infix fun Point.containedIn(map: List<String>): Boolean {
-        return map.getOrNull(y)?.getOrNull(x) != null
+        return map.getOrNull(row)?.getOrNull(col) != null
     }
 
     private fun List<String>.getChar(p: Point): Char? {
-        return this.getOrNull(p.y)?.getOrNull(p.x)
+        return this.getOrNull(p.row)?.getOrNull(p.col)
     }
 
     private data class Beam(

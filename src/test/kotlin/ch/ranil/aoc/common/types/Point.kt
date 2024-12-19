@@ -2,36 +2,36 @@ package ch.ranil.aoc.common.types
 
 import kotlin.math.abs
 
-data class Point(val x: Int, val y: Int) : Comparable<Point> {
+data class Point(val row: Int, val col: Int) : Comparable<Point> {
 
     override fun compareTo(other: Point): Int {
-        return compareValuesBy(this, other, Point::y, Point::x)
+        return compareValuesBy(this, other, Point::row, Point::col)
     }
 
-    override fun toString(): String = "($x,$y)"
+    override fun toString(): String = "($col,$row)"
 
-    fun north(step: Int = 1) = Point(x, y - step)
-    fun east(step: Int = 1) = Point(x + step, y)
-    fun south(step: Int = 1) = Point(x, y + step)
-    fun west(step: Int = 1) = Point(x - step, y)
-    fun northWest(step: Int = 1) = Point(x - step, y - step)
-    fun northEast(step: Int = 1) = Point(x + step, y - step)
-    fun southWest(step: Int = 1) = Point(x - step, y + step)
-    fun southEast(step: Int = 1) = Point(x + step, y + step)
+    fun north(step: Int = 1) = Point(row - step, col)
+    fun east(step: Int = 1) = Point(row, col + step)
+    fun south(step: Int = 1) = Point(row + step, col)
+    fun west(step: Int = 1) = Point(row, col - step)
+    fun northWest(step: Int = 1) = Point(row - step, col - step)
+    fun northEast(step: Int = 1) = Point(row - step, col + step)
+    fun southWest(step: Int = 1) = Point(row + step, col - step)
+    fun southEast(step: Int = 1) = Point(row + step, col + step)
 
     fun edges(): List<Point> {
         return listOf(
             // Above
-            Point(x - 1, y - 1),
-            Point(x, y - 1),
-            Point(x + 1, y - 1),
+            Point(row - 1, col - 1),
+            Point(row - 1, col),
+            Point(row - 1, col + 1),
             // Side
-            Point(x - 1, y),
-            Point(x + 1, y),
+            Point(row, col - 1),
+            Point(row, col + 1),
             // Below
-            Point(x - 1, y + 1),
-            Point(x, y + 1),
-            Point(x + 1, y + 1),
+            Point(row + 1, col - 1),
+            Point(row + 1, col),
+            Point(row + 1, col + 1),
         )
     }
 
@@ -46,23 +46,23 @@ data class Point(val x: Int, val y: Int) : Comparable<Point> {
 
     fun move(direction: Direction, steps: Int = 1): Point {
         return when (direction) {
-            Direction.N -> copy(y = y - steps)
-            Direction.E -> copy(x = x + steps)
-            Direction.S -> copy(y = y + steps)
-            Direction.W -> copy(x = x - steps)
+            Direction.N -> copy(row = row - steps)
+            Direction.E -> copy(col = col + steps)
+            Direction.S -> copy(row = row + steps)
+            Direction.W -> copy(col = col - steps)
         }
     }
 
     fun diffTo(other: Point): Pair<Int, Int> {
-        return (other.x - x) to (other.y - y)
+        return (other.col - col) to (other.row - row)
     }
 
     fun distanceTo(other: Point): Int {
-        return abs(other.x - x) + abs(other.y - y)
+        return abs(other.col - col) + abs(other.row - row)
     }
 
     fun isAdjacentTo(other: Point): Boolean {
-        return (abs(other.x - this.x) <= 1) and (abs(other.y - this.y) <= 1)
+        return (abs(other.col - col) <= 1) and (abs(other.row - row) <= 1)
     }
 
     companion object {

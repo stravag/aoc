@@ -110,7 +110,7 @@ L-J
 
         val loopPoints = inputMap.flatMapIndexed { y, line ->
             line.mapIndexedNotNull { x, c ->
-                if (c != ' ') Point(x, y) to c else null
+                if (c != ' ') Point(y, x) to c else null
             }
         }.toMap()
 
@@ -127,11 +127,11 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
 
         val loopPoints = inputMap.flatMapIndexed { y, line ->
             line.mapIndexedNotNull { x, c ->
-                if (c != ' ') Point(x, y) to c else null
+                if (c != ' ') Point(y, x) to c else null
             }
         }.toMap()
 
-        assertFalse(isConnectedToEdge(Point(66, 1), loopPoints))
+        assertFalse(isConnectedToEdge(Point(1, 66), loopPoints))
     }
 
     @Test
@@ -172,7 +172,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
 
         val candidatePositions = inputMap.flatMapIndexed { y, s ->
             s.mapIndexed { x, _ ->
-                Point(x, y)
+                Point(y, x)
             }
         }
 
@@ -215,7 +215,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     private fun findStart(): Point {
         inputMap.forEachIndexed { y, s ->
             s.forEachIndexed { x, c ->
-                if (c == 'S') return Point(x, y)
+                if (c == 'S') return Point(y, x)
             }
         }
         throw IllegalArgumentException("no start found")
@@ -261,7 +261,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     }
 
     private fun Point.isContainedInMap(): Boolean {
-        return x >= 0 && x < inputMap.first().length && y >= 0 && y < inputMap.size
+        return col >= 0 && col < inputMap.first().length && row >= 0 && row < inputMap.size
     }
 
     private fun Point.isEdgeOfMap(): Boolean {
@@ -313,7 +313,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     }
 
     private fun getChar(pos: Point): Char {
-        return inputMap[pos.y][pos.x]
+        return inputMap[pos.row][pos.col]
     }
 
     private fun getCharCleanedUp(pos: Point, loop: Map<Point, Char>): Char {
@@ -323,7 +323,7 @@ L--7|L----7LJF--7FJ||||LJL-7L---JLJ F7 |L-----JLJ|LJFJ|||LJ|||FJLJ  LJF---J|F7FJ
     private fun printMap(pointsInside: Collection<Point>, loopPositions: Map<Point, Char>) {
         inputMap.forEachIndexed { y, s ->
             s.forEachIndexed { x, _ ->
-                val p = Point(x, y)
+                val p = Point(y, x)
                 val pipe = loopPositions[p]
                 if (pipe != null) {
                     val red = "\u001b[31m"

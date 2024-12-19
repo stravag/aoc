@@ -58,10 +58,10 @@ class Day03 : AbstractDay() {
             Regex("[0-9]+|[^0-9.]").findAll(line).forEach { r ->
                 r.groups.filterNotNull().forEach { g ->
                     if (g.value.first().isDigit()) {
-                        val positionsOfNum = g.range.map { x -> Point(x, y) }
+                        val positionsOfNum = g.range.map { x -> Point(y, x) }
                         partNumbers.add(PartNumber(g.value.toInt(), positionsOfNum))
                     } else {
-                        val positionOfSymbol = Point(g.range.first, y)
+                        val positionOfSymbol = Point(y, g.range.first)
                         symbols.add(Symbol(g.value.single(), positionOfSymbol))
                     }
                 }
