@@ -17,8 +17,8 @@ abstract class AbstractMap(
         return input.forEachPointWithChar(action)
     }
 
-    fun printMap(printChar: (Point, Char) -> Unit) {
-        input.print(printChar)
+    fun printMap(border: Boolean = true, printChar: (Point, Char) -> Unit) {
+        input.print(border, printChar)
     }
 
     fun charFor(point: Point): Char {

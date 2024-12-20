@@ -56,9 +56,9 @@ class PointTest {
     fun testDiffTo() {
         val zero = Point(0, 0)
         assertEquals(0 to 0, zero.diffTo(zero))
-        assertEquals(0 to 1, zero.diffTo(Point(1, 0)))
-        assertEquals(-1 to 0, zero.diffTo(Point(0, -1)))
-        assertEquals(0 to -1, zero.diffTo(Point(-1, 0)))
+        assertEquals(1 to 0, zero.diffTo(Point(1, 0)))
+        assertEquals(0 to -1, zero.diffTo(Point(0, -1)))
+        assertEquals(-1 to 0, zero.diffTo(Point(-1, 0)))
         assertEquals(1 to 1, zero.diffTo(Point(1, 1)))
     }
 

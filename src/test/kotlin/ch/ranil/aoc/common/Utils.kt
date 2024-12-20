@@ -39,24 +39,24 @@ fun List<Int>.product(): Int {
 }
 
 fun List<String>.forEachPointWithChar(action: (Point, Char) -> Unit) {
-    return this.forEachIndexed { y, s ->
-        s.forEachIndexed { x, c ->
-            action(Point(y, x), c)
+    return this.forEachIndexed { row, s ->
+        s.forEachIndexed { col, c ->
+            action(Point(row, col), c)
         }
     }
 }
 
-fun List<String>.print(printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
-    println("+" + "-".repeat(first().length) + "+")
-    forEachIndexed { y, s ->
-        s.forEachIndexed { x, c ->
-            if (x == 0) print('|')
-            printChar(Point(y, x), c)
-            if (x == s.length - 1) print('|')
+fun List<String>.print(border: Boolean = true, printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
+    if (border) println("+" + "-".repeat(first().length) + "+")
+    forEachIndexed { row, s ->
+        s.forEachIndexed { col, c ->
+            if (border) if (col == 0) print('|')
+            printChar(Point(row, col), c)
+            if (border) if (col == s.length - 1) print('|')
         }
         println()
     }
-    println("+" + "-".repeat(first().length) + "+")
+    if (border) println("+" + "-".repeat(first().length) + "+")
 }
 
 fun List<String>.charForPoint(point: Point): Char? {

@@ -8,7 +8,7 @@ data class Point(val row: Int, val col: Int) : Comparable<Point> {
         return compareValuesBy(this, other, Point::row, Point::col)
     }
 
-    override fun toString(): String = "($col,$row)"
+    override fun toString(): String = "($row,$col)"
 
     fun north(step: Int = 1) = Point(row - step, col)
     fun east(step: Int = 1) = Point(row, col + step)
@@ -54,7 +54,7 @@ data class Point(val row: Int, val col: Int) : Comparable<Point> {
     }
 
     fun diffTo(other: Point): Pair<Int, Int> {
-        return (other.col - col) to (other.row - row)
+        return (other.row - row) to (other.col - col)
     }
 
     fun distanceTo(other: Point): Int {
