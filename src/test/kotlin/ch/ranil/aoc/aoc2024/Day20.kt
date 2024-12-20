@@ -7,6 +7,7 @@ import ch.ranil.aoc.common.printColor
 import ch.ranil.aoc.common.types.AbstractMap
 import ch.ranil.aoc.common.types.Point
 import org.junit.jupiter.api.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
 
 class Day20 : AbstractDay() {
@@ -24,22 +25,22 @@ class Day20 : AbstractDay() {
 
     @Test
     fun part2Test() {
-        Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(285, compute2(minTimeSaved = 50, testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(983905, compute2(minTimeSaved = 100, puzzleInput))
     }
 
     private fun compute1(minTimeSaved: Int, input: List<String>): Int {
         val maze = Maze(input)
-        return maze.countCheats(minTimeSaved)
+        return maze.countCheats1(minTimeSaved)
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(minTimeSaved: Int, input: List<String>): Int {
+        val maze = Maze(input)
+        return maze.countCheats2(minTimeSaved)
     }
 
     private class Maze(input: List<String>) : AbstractMap(input) {
@@ -48,17 +49,25 @@ class Day20 : AbstractDay() {
 
         private val cache: MutableMap<Point, Int> = mutableMapOf()
 
-        fun countCheats(minTimeSaved: Int): Int {
+        fun countCheats1(minTimeSaved: Int): Int {
+            return countCheats(minTimeSaved) { it.getCheats() }
+        }
+
+        fun countCheats2(minTimeSaved: Int): Int {
+            return countCheats(minTimeSaved) { it.getCheats2() }
+        }
+
+        private fun countCheats(minTimeSaved: Int, cheatProvider: (Point) -> List<Cheat>): Int {
             followPath()
 
-            val cheats = cache.keys.flatMap { it.getCheats() }
+            val cheats = cache.keys.flatMap(cheatProvider)
             val timeSavedByShortcuts = cheats
                 .mapNotNull { cheat ->
                     val timeSaved = cache.getValue(cheat.source) - cache.getValue(cheat.target) - cheat.time
                     if (timeSaved > 0) {
                         Debug.debug {
                             println("Cheat $cheat saved $timeSaved picoseconds")
-                            printMaze(listOf(cheat))
+                            printMaze(cheat)
                         }
                         timeSaved
                     } else null
@@ -75,34 +84,35 @@ class Day20 : AbstractDay() {
                 nextPoint = nextPoint
                     .directEdges()
                     .singleOrNull { it.isPath() && it !in cache }
-                Debug.debug { printMaze(emptySet()) }
             }
         }
 
         private fun Point.isPath(): Boolean = charForOrNull(this) !in listOf(null, '#')
 
         private fun Point.getCheats(): List<Cheat> {
-            return this
-                .directEdges()
-                .filterNot { it.isPath() }
-                .map { skippedWall ->
-                    val (dRow, dCol) = this.diffTo(skippedWall)
-                    Cheat(
-                        source = this,
-                        target = Point(skippedWall.row + dRow, skippedWall.col + dCol)
-                    )
-                }
-                .filter { it.target.isPath() }
+            return listOf(
+                north(2),
+                east(2),
+                south(2),
+                west(2),
+            ).filter { it.isPath() }.map { Cheat(source = this, target = it) }
         }
 
-        private fun printMaze(cheats: Collection<Cheat>) {
-            val cheatsTo = cheats.map { it.target }
+        private fun Point.getCheats2(): List<Cheat> {
+            return ((-20)..20).flatMap { row ->
+                val n = 20 - abs(row)
+                ((-n)..n).map { col -> Point(this.row + row, this.col + col) }
+            }.filter { it.isPath() }.map { Cheat(source = this, target = it) }
+        }
+
+        private fun printMaze(cheat: Cheat) {
             printMap(border = false) { point, c ->
                 when (c) {
                     '#' -> print(c)
                     '.' -> {
                         when (point) {
-                            in cheatsTo -> printColor('O', PrintColor.RED)
+                            cheat.target -> printColor('O', PrintColor.RED)
+                            cheat.source -> printColor('O', PrintColor.BLUE)
                             in cache -> printColor('O', PrintColor.GREEN)
                             else -> print(c)
                         }
@@ -110,7 +120,8 @@ class Day20 : AbstractDay() {
 
                     'S', 'E' -> {
                         when (point) {
-                            in cheatsTo -> printColor(c, PrintColor.RED)
+                            cheat.target -> printColor(c, PrintColor.RED)
+                            cheat.source -> printColor(c, PrintColor.BLUE)
                             in cache -> printColor(c, PrintColor.GREEN)
                             else -> printColor(c, PrintColor.YELLOW)
                         }
