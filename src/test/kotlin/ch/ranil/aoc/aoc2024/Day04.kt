@@ -3,7 +3,7 @@ package ch.ranil.aoc.aoc2024
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.types.MovePointBySteps
 import ch.ranil.aoc.common.types.Point
-import ch.ranil.aoc.common.charForPoint
+import ch.ranil.aoc.common.charForOrNull
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -64,10 +64,10 @@ class Day04 : AbstractDay() {
 
     private fun searchXmas(point: Point, move: MovePointBySteps, input: List<String>): Long {
         val crossWord = listOf(
-            input.charForPoint(point),
-            input.charForPoint(move(point, 1)),
-            input.charForPoint(move(point, 2)),
-            input.charForPoint(move(point, 3)),
+            input.charForOrNull(point),
+            input.charForOrNull(move(point, 1)),
+            input.charForOrNull(move(point, 2)),
+            input.charForOrNull(move(point, 3)),
         ).joinToString("")
         return if (crossWord == "XMAS") 1 else 0
     }
@@ -86,15 +86,15 @@ class Day04 : AbstractDay() {
 
     private fun searchXmasCross(point: Point, input: List<String>): Long {
         val diag1 = listOf(
-            input.charForPoint(point.northWest()),
-            input.charForPoint(point),
-            input.charForPoint(point.southEast()),
+            input.charForOrNull(point.northWest()),
+            input.charForOrNull(point),
+            input.charForOrNull(point.southEast()),
         ).joinToString("")
 
         val diag2 = listOf(
-            input.charForPoint(point.southWest()),
-            input.charForPoint(point),
-            input.charForPoint(point.northEast()),
+            input.charForOrNull(point.southWest()),
+            input.charForOrNull(point),
+            input.charForOrNull(point.northEast()),
         ).joinToString("")
 
         val isDiag1 = (diag1 == "MAS" || diag1 == "SAM")

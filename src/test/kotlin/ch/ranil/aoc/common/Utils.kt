@@ -47,6 +47,14 @@ fun List<String>.forEachPointWithChar(action: (Point, Char) -> Unit) {
     }
 }
 
+fun List<String>.allPoints(): List<Point> {
+    return flatMapIndexed { y, s ->
+        s.mapIndexed { x, _ ->
+            Point(y, x)
+        }
+    }
+}
+
 fun List<String>.print(border: Boolean = true, printChar: (Point, Char) -> Unit = { _, c -> print(c) }) {
     if (border) println("+" + "-".repeat(first().length) + "+")
     forEachIndexed { row, s ->
@@ -60,7 +68,11 @@ fun List<String>.print(border: Boolean = true, printChar: (Point, Char) -> Unit 
     if (border) println("+" + "-".repeat(first().length) + "+")
 }
 
-fun List<String>.charForPoint(point: Point): Char? {
+fun List<String>.charFor(point: Point): Char {
+    return this.getOrNull(point.row)?.getOrNull(point.col) ?: error("No char for point $point")
+}
+
+fun List<String>.charForOrNull(point: Point): Char? {
     return this.getOrNull(point.row)?.getOrNull(point.col)
 }
 

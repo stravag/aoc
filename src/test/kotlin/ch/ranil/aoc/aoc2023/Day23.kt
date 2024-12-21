@@ -2,7 +2,7 @@ package ch.ranil.aoc.aoc2023
 
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.types.Point
-import ch.ranil.aoc.common.charForPoint
+import ch.ranil.aoc.common.charForOrNull
 import ch.ranil.aoc.common.containsPoint
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -95,7 +95,7 @@ class Day23 : AbstractDay() {
     private fun neighborsOf(p: Point, input: List<String>): List<Point> {
         fun next(c1: () -> Point, matchingSlope: Char): Point? {
             val nxt = c1()
-            val char = input.charForPoint(nxt)
+            val char = input.charForOrNull(nxt)
             return if (input.containsPoint(nxt) && (char == matchingSlope || char == '.')) {
                 nxt
             } else {
