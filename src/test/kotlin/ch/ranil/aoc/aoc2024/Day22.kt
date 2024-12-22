@@ -53,13 +53,13 @@ class Day22 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        val input = "1\n10\n100\n2024".lines()
-        assertEquals(0, compute2(input))
+        val input = "1\n2\n3\n2024".lines()
+        assertEquals(23, compute2(input))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(2191, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -91,7 +91,7 @@ class Day22 : AbstractDay() {
             }
         }
         val (sequence, maxPrice) = sequencesPriceMap.maxBy { it.value }
-        println(sequence)
+        println("Best sequence: $sequence")
         return maxPrice
     }
 
