@@ -23,46 +23,28 @@ class Day23 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals("co,de,ka,ta", compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals("cc,dz,ea,hj,if,it,kf,qo,sk,ug,ut,uv,wh", compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
-        val computers = mutableMapOf<String, Computer>()
-        input
-            .map { it.split("-") }
-            .forEach { (s1, s2) ->
-                val c1 = computers.getOrDefault(s1, Computer(s1))
-                val c2 = computers.getOrDefault(s2, Computer(s2))
-                c1.connections.add(c2)
-                c2.connections.add(c1)
-                computers[s1] = c1
-                computers[s2] = c2
-            }
-
-        return countNetworksOfThree(computers)
-    }
-
-    private fun countNetworksOfThree(computers: Map<String, Computer>): Int {
-        val tNames = computers.keys.filter { it.startsWith("t") }
+        val computers = buildNetworkGraph(input)
         val loops = mutableSetOf<Set<Computer>>()
-        tNames
-            .sorted()
-            .map { computers.getValue(it) }
+        computers
+            .filter { it.name.startsWith("t") }
             .forEach { computer ->
                 Debug.debug { println("Processing ${computer.name}...") }
-                countNetworksOfThreeRec(computers, loops, listOf(computer))
+                countNetworksOfThreeRec(loops, listOf(computer))
             }
 
         return loops.size
     }
 
     private fun countNetworksOfThreeRec(
-        computers: Map<String, Computer>,
         loops: MutableSet<Set<Computer>>,
         networkSoFar: List<Computer>,
     ) {
@@ -81,21 +63,80 @@ class Day23 : AbstractDay() {
             }
         }
         Debug.debug { println("Network so far: $networkSoFar") }
-        val nextComputers = networkSoFar.last().connections
-        return nextComputers
-            .filterNot {
-                networkSoFar.size == 2 && it == networkSoFar.first()
-            }
+        return networkSoFar
+            .last()
+            .getConnections()
+            .filterNot { networkSoFar.size == 2 && it == networkSoFar.first() } // don't move backwards
             .forEach { nextComputer ->
-                countNetworksOfThreeRec(computers, loops, networkSoFar + nextComputer)
+                countNetworksOfThreeRec(loops, networkSoFar + nextComputer)
             }
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(input: List<String>): String {
+        val computers = buildNetworkGraph(input)
+        val cliques = mutableListOf<Set<Computer>>()
+        findCliquesRec(
+            candidates = computers.toMutableSet(),
+            result = cliques
+        )
+
+        val largestClique = cliques.maxBy { it.size }
+        println("Largest clique: $largestClique")
+        return largestClique.sortedBy { it.name }.joinToString(",") { it.name }
+    }
+
+    /**
+     * Bron Kerbosch Algorithm to find maximum cliques
+     */
+    private fun findCliquesRec(
+        currentClique: MutableSet<Computer> = mutableSetOf(),
+        candidates: MutableSet<Computer>,
+        seen: MutableSet<Computer> = mutableSetOf(),
+        result: MutableList<Set<Computer>>,
+    ) {
+        if (candidates.isEmpty() && seen.isEmpty()) {
+            result.add(currentClique.toSet())
+            return
+        }
+
+        val candidatesIterator = candidates.iterator()
+        candidatesIterator.forEach { candidate ->
+            currentClique.add(candidate)
+            val neighbors = candidate.getConnections()
+            findCliquesRec(
+                currentClique = currentClique,
+                candidates = candidates.intersect(neighbors).toMutableSet(),
+                seen = seen.intersect(neighbors).toMutableSet(),
+                result = result
+            )
+            currentClique.remove(candidate)
+            candidatesIterator.remove()
+            seen.add(candidate)
+        }
+    }
+
+    private fun buildNetworkGraph(input: List<String>): Collection<Computer> {
+        val computers = mutableMapOf<String, Computer>()
+        input
+            .map { it.split("-") }
+            .forEach { (s1, s2) ->
+                val c1 = computers.getOrDefault(s1, Computer(s1))
+                val c2 = computers.getOrDefault(s2, Computer(s2))
+                c1.add(c2)
+                c2.add(c1)
+                computers[s1] = c1
+                computers[s2] = c2
+            }
+        return computers.values
     }
 
     data class Computer(val name: String) {
-        val connections = mutableSetOf<Computer>()
+        private val connections = mutableSetOf<Computer>()
+
+        fun getConnections(): Set<Computer> = connections
+
+        fun add(connection: Computer) {
+            connections.add(connection)
+        }
     }
 }
