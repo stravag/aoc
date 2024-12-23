@@ -147,6 +147,12 @@ class Day21 : AbstractDay() {
                 .filter { nPad.charFor(it) != ' ' }
                 .toSet()
 
+            val v1 = findShortestPaths(nPadPoints.first(), nPad, nPadPoints)
+            println(v1)
+            val v2 = findShortestPaths2(nPadPoints.first(), nPad, nPadPoints)
+            println(v2)
+            println()
+            /*
             dPadPoints.forEach { dPadPoint ->
                 val shortestPaths = findShortestPaths(dPadPoint, dPad, dPadPoints)
                 moveCache.putAll(shortestPaths)
@@ -156,6 +162,7 @@ class Day21 : AbstractDay() {
                 val shortestPaths = findShortestPaths(nPadPoint, nPad, nPadPoints)
                 moveCache.putAll(shortestPaths)
             }
+             */
         }
 
         private fun findShortestPaths(
@@ -185,6 +192,42 @@ class Day21 : AbstractDay() {
                 }
                 .mapValues { (_, directions) ->
                     directions.map { Button(it.indicator) } + Button('A')
+                }
+        }
+
+        private fun findShortestPaths2(
+            from: Point,
+            pad: List<String>,
+            padPoints: Set<Point>,
+        ): Map<CacheKey, List<List<Button>>> {
+            val seen = mutableMapOf<Point, MutableSet<List<Direction>>>()
+            val queue = ArrayDeque<Pair<Point, List<Direction>>>()
+            queue.add(from to emptyList())
+            while (queue.isNotEmpty()) {
+                val (point, movesToPoint) = queue.removeFirst()
+                seen.compute(point) { _, shortestMoves ->
+                    (shortestMoves ?: mutableSetOf()).apply { add(movesToPoint) }
+                }
+                for (direction in listOf(N, E, S, W)) {
+                    val nextPoint = point.move(direction)
+                    if (nextPoint !in padPoints) continue // stay within pad
+
+                    val movesToNextPoint = movesToPoint + direction
+                    val bestKnownMovesToPoint = seen[nextPoint]?.minOf { it.size } ?: Int.MAX_VALUE
+                    if (movesToNextPoint.size > bestKnownMovesToPoint) continue // already worse off
+
+                    queue.add(nextPoint to movesToNextPoint)
+                }
+            }
+            return seen
+                .mapKeys { (point, _) ->
+                    CacheKey(
+                        robotState = listOf(Button(pad.charFor(from))),
+                        targetButton = Button(pad.charFor(point))
+                    )
+                }
+                .mapValues { (_, moves) ->
+                    moves.map { directions -> directions.map { Button(it.indicator) } + Button('A') }
                 }
         }
 
