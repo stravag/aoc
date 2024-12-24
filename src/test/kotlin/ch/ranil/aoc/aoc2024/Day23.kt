@@ -86,7 +86,9 @@ class Day23 : AbstractDay() {
     }
 
     /**
-     * Bron Kerbosch Algorithm to find maximum cliques
+     * Bron Kerbosch Algorithm to find maximum cliques.
+     *
+     * Didn't know this algorithm... thank you reddit! 🙏
      */
     private fun findCliquesRec(
         currentClique: MutableSet<Computer> = mutableSetOf(),
