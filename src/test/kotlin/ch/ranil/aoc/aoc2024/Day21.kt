@@ -4,6 +4,7 @@ import ch.ranil.aoc.common.*
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Direction.*
 import ch.ranil.aoc.common.types.Point
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -14,7 +15,7 @@ import kotlin.test.assertEquals
 class Day21 : AbstractDay() {
 
     @Test
-    fun part1Dummy1Alt() {
+    fun part1Dummy() {
         val starship = Starship()
         // 👇 this seems fine ¯\_(ツ)_/¯
         assertEquals("<A", starship.press("0", 0))
@@ -24,7 +25,7 @@ class Day21 : AbstractDay() {
     }
 
     @Test
-    fun part1AltDummyLong() {
+    fun part1DummyLong() {
         Debug.enable()
         val starship = Starship()
         //   <A^A>^^AvvvA 👈 this seems fine ¯\_(ツ)_/¯
@@ -56,12 +57,20 @@ class Day21 : AbstractDay() {
     }
 
     @Test
+    fun part2Dummy() {
+        val starship = Starship()
+        assertEquals("<A", starship.press("0", 25))
+    }
+
+    @Test
+    @Disabled
     fun part2Test() {
         Debug.enable()
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
@@ -69,7 +78,7 @@ class Day21 : AbstractDay() {
     private fun compute1(input: List<String>): Long {
         val starship = Starship()
         return input.sumOf { sequence ->
-            val dPadMoves = starship.press(sequence)
+            val dPadMoves = starship.press(sequence, depth = 2)
             val sequenceVal = sequence.dropLast(1).toLong()
             println("$sequence: $dPadMoves")
             println("${dPadMoves.length} * $sequenceVal")
@@ -78,14 +87,21 @@ class Day21 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+        val starship = Starship()
+        return input.sumOf { sequence ->
+            val dPadMoves = starship.press(sequence, depth = 3)
+            val sequenceVal = sequence.dropLast(1).toLong()
+            println("$sequence: $dPadMoves")
+            println("${dPadMoves.length} * $sequenceVal")
+            sequenceVal * dPadMoves.length
+        }
     }
 
     private class Starship {
 
         val moveCache: MutableMap<CacheKey, List<List<Button>>> = mutableMapOf()
 
-        fun press(sequence: String, depth: Int = 2): String {
+        fun press(sequence: String, depth: Int): String {
             val inputsForNumPad = "A$sequence"
                 .map { Button(it) }
                 .windowed(2)
@@ -100,17 +116,12 @@ class Day21 : AbstractDay() {
                 }
 
             Debug.debug { println("Possible inputs for numPad: $inputsForNumPad") }
-            val inputsForDPad1 = getDPadSequenceForDPad(inputsForNumPad)
-            val inputsForDPad2 = getDPadSequenceForDPad(inputsForDPad1)
-
-            val inputs = when (depth) {
-                0 -> inputsForNumPad.first()
-                1 -> inputsForDPad1.first()
-                2 -> inputsForDPad2.first()
-                else -> error("Invalid depth $depth")
+            var inputsForDPad = inputsForNumPad
+            repeat(depth) {
+                inputsForDPad = getDPadSequenceForDPad(inputsForDPad)
             }
 
-            return inputs.joinToString("") { it.c.toString() }
+            return inputsForDPad.first().joinToString("") { it.c.toString() }
         }
 
         private fun getDPadSequenceForDPad(
@@ -125,7 +136,7 @@ class Day21 : AbstractDay() {
 
         private fun List<Button>.getControls(): List<List<Button>> = this
             .windowed(2)
-            .fold(listOf(listOf())) { list, (src, dst) ->
+            .fold(mutableListOf(mutableListOf())) { list, (src, dst) ->
                 val cacheKey = CacheKey(src, dst)
                 val nextMoves = moveCache.getValue(cacheKey)
                 if (list.isEmpty()) {
