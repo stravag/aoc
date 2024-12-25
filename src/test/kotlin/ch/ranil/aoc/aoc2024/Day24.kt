@@ -3,7 +3,7 @@ package ch.ranil.aoc.aoc2024
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
 import org.junit.jupiter.api.Test
-import java.util.Stack
+import java.lang.Long.toBinaryString
 import kotlin.test.assertEquals
 
 class Day24 : AbstractDay() {
@@ -40,12 +40,33 @@ class Day24 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        val input = """
+            x00: 0
+            x01: 1
+            x02: 0
+            x03: 1
+            x04: 0
+            x05: 1
+            y00: 0
+            y01: 0
+            y02: 1
+            y03: 1
+            y04: 0
+            y05: 1
+
+            x00 AND y00 -> z05
+            x01 AND y01 -> z02
+            x02 AND y02 -> z01
+            x03 AND y03 -> z03
+            x04 AND y04 -> z04
+            x05 AND y05 -> z00
+        """.trimIndent().lines()
+        assertEquals(0, compute2(input, Long::and))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(0, compute2(puzzleInput, Long::plus))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -67,18 +88,36 @@ class Day24 : AbstractDay() {
         }
 
         return gates
+            .filter { it.out.startsWith("z") }
             .map { it.out }
-            .filter { it.startsWith("z") }
-            .sumOf { out ->
-                val shift = out.drop(1).toInt()
-                val outVal = data.getValue(out)
-                val shiftedVal = outVal.toLong() shl shift
-                shiftedVal
-            }
+            .toNumber(data)
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+    private fun compute2(input: List<String>, op: (Long, Long) -> Long): Long {
+        val data = getInitialInputs(input).toMutableMap()
+        val gates = getGates(input)
+        val resultSize = gates.count { it.out.startsWith("z") }
+
+        val (xInputs, yInputs) = data.keys.partition { it.startsWith("x") }
+        val x = xInputs.toNumber(data)
+        val y = yInputs.toNumber(data)
+        val z = op(x, y)
+        val actual = compute1(input)
+
+        println("Desired: ${toBinaryString(z).padStart(resultSize, '0')}")
+        println("Actual : ${toBinaryString(actual).padStart(resultSize, '0')}")
+        println("Diff   : ${toBinaryString(z xor actual).padStart(resultSize, '0')}")
+
+        TODO()
+    }
+
+    private fun List<String>.toNumber(data: MutableMap<String, Int>): Long {
+        return this.sumOf { out ->
+            val shift = out.drop(1).toInt()
+            val outVal = data.getValue(out)
+            val shiftedVal = outVal.toLong() shl shift
+            shiftedVal
+        }
     }
 
 
