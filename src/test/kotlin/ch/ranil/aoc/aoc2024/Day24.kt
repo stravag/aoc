@@ -2,6 +2,8 @@ package ch.ranil.aoc.aoc2024
 
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
+import ch.ranil.aoc.common.PrintColor
+import ch.ranil.aoc.common.printlnColor
 import org.junit.jupiter.api.Test
 import java.lang.Long.toBinaryString
 import kotlin.test.assertEquals
@@ -38,30 +40,18 @@ class Day24 : AbstractDay() {
     }
 
     @Test
-    fun part2Test() {
-        Debug.enable()
-        val input = """
-            x00: 0
-            x01: 1
-            x02: 0
-            x03: 1
-            x04: 0
-            x05: 1
-            y00: 0
-            y01: 0
-            y02: 1
-            y03: 1
-            y04: 0
-            y05: 1
-
-            x00 AND y00 -> z05
-            x01 AND y01 -> z02
-            x02 AND y02 -> z01
-            x03 AND y03 -> z03
-            x04 AND y04 -> z04
-            x05 AND y05 -> z00
-        """.trimIndent().lines()
-        assertEquals(0, compute2(input, Long::and))
+    fun part2FindFaultyBits() {
+        val gates = getGates(puzzleInput)
+        val invalidBits = (0..44)
+            .flatMap { i -> gates.validate(i) }
+            .distinct()
+            .sorted()
+        for (i in 0..44) {
+            val color = if (i in invalidBits) PrintColor.RED else PrintColor.GREEN
+            val gatesInvolved = gates.filterInvolvedForZ(i)
+            println("Gates for $i (${gatesInvolved.count()})")
+            gatesInvolved.forEach { printlnColor(it, color) }
+        }
     }
 
     @Test
@@ -72,6 +62,11 @@ class Day24 : AbstractDay() {
     private fun compute1(input: List<String>): Long {
         val data = getInitialInputs(input).toMutableMap()
         val gates = getGates(input)
+        return gates.run(data)
+    }
+
+    private fun List<Gate>.run(data: MutableMap<String, Int>): Long {
+        val gates = this
         val settledGates = mutableSetOf<Gate>()
         while (settledGates.size < gates.size) {
             val gatesToSettle = gates
@@ -91,6 +86,86 @@ class Day24 : AbstractDay() {
             .filter { it.out.startsWith("z") }
             .map { it.out }
             .toNumber(data)
+    }
+
+    private fun List<Gate>.filterInvolvedForZ(zBit: Int): Set<Gate> {
+        val gates = this
+        fun getInvolvedFor(zBit: Int): Set<Gate> {
+            val result = mutableSetOf<Gate>()
+            val nextOutputs = mutableListOf(zBit.toWire('z'))
+            while (nextOutputs.isNotEmpty()) {
+                val out = nextOutputs.removeFirst()
+                val gateOfOut = gates.singleOrNull { it.out == out } ?: continue
+
+                result.add(gateOfOut)
+                if (gateOfOut.i1.first() !in listOf('x', 'y')) {
+                    nextOutputs.add(gateOfOut.i1)
+                }
+                if (gateOfOut.i2.first() !in listOf('x', 'y')) {
+                    nextOutputs.add(gateOfOut.i2)
+                }
+            }
+            return result
+        }
+        return getInvolvedFor(zBit) - getInvolvedFor(zBit - 1)
+    }
+
+    private fun List<Gate>.filterInvolvedForXY(bit: Int): Set<Gate> {
+        val gates = this
+        fun getInvolvedFor(bit: Int): Set<Gate> {
+            val result = mutableSetOf<Gate>()
+            val nextInputs = mutableListOf(bit.toWire('x'), bit.toWire('y'))
+            while (nextInputs.isNotEmpty()) {
+                val input = nextInputs.removeFirst()
+                val gatesOfIn = gates.filter { it.i1 == input || it.i2 == input }
+                result.addAll(gatesOfIn)
+                nextInputs.addAll(gatesOfIn.map { it.out })
+            }
+            return result
+        }
+        return getInvolvedFor(bit) - getInvolvedFor(bit - 1)
+    }
+
+    private fun List<Gate>.validate(n: Int): Set<Int> {
+        fun initData(): MutableMap<String, Int> {
+            val data = mutableMapOf<String, Int>()
+            repeat(45) { i ->
+                data[i.toWire('x')] = 0
+                data[i.toWire('y')] = 0
+            }
+            return data
+        }
+
+        val gates = this
+        for (x in 0..1L) {
+            for (y in 0..1L) {
+                // Create init_x and init_y
+                val data = initData()
+                data[n.toWire('x')] = x.toInt()
+                data[n.toWire('y')] = y.toInt()
+
+                // Call the run_wire2 function
+                val z = gates.run(data)
+
+                // Validate the result
+                val zString = toBinaryString(z).padStart(46, '0')
+                val bit = zString[45 - n]
+                val carry = zString[45 - n - 1]
+
+                val invalidZBits = mutableSetOf<Int>()
+                val (expectedBit, expectedCarry) = when {
+                    x == 0L && y == 0L -> '0' to '0'
+                    x == 0L && y == 1L -> '1' to '0'
+                    x == 1L && y == 0L -> '1' to '0'
+                    x == 1L && y == 1L -> '0' to '1'
+                    else -> error("Invalid case")
+                }
+                if (bit != expectedBit) invalidZBits.add(n)
+                if (carry != expectedCarry) invalidZBits.add(n + 1)
+                if (invalidZBits.isNotEmpty()) return invalidZBits
+            }
+        }
+        return emptySet()
     }
 
     private fun compute2(input: List<String>, op: (Long, Long) -> Long): Long {
@@ -141,16 +216,7 @@ class Day24 : AbstractDay() {
             }
     }
 
-    private fun List<Gate>.associateByInputs(): Map<String, List<Gate>> {
-        val result = mutableMapOf<String, MutableList<Gate>>()
-        this.forEach { gate ->
-            result.compute(gate.i1) { _, acc -> (acc ?: mutableListOf()).apply { add(gate) } }
-            result.compute(gate.i2) { _, acc -> (acc ?: mutableListOf()).apply { add(gate) } }
-        }
-        return result
-    }
-
-    data class Gate(
+    private data class Gate(
         val i1: String,
         val i2: String,
         private val op: String,
@@ -168,5 +234,11 @@ class Day24 : AbstractDay() {
                 else -> error("Invalid op: $op")
             }
         }
+
+        override fun toString(): String {
+            return "$i1 $op $i2 -> $out"
+        }
     }
+
+    private fun Int.toWire(type: Char): String = "$type${this.toString().padStart(2, '0')}"
 }
