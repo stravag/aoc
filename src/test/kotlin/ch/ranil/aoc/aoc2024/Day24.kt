@@ -8,6 +8,10 @@ import org.junit.jupiter.api.Test
 import java.lang.Long.toBinaryString
 import kotlin.test.assertEquals
 
+/**
+ * Was only able to solve this by taking loads of inspiration by this good man 😇🙏🙈:
+ * https://www.youtube.com/watch?v=pH5MRTC4MLY
+ */
 class Day24 : AbstractDay() {
 
     @Test
@@ -56,7 +60,7 @@ class Day24 : AbstractDay() {
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput, Long::plus))
+        assertEquals("fhc,ggt,hqk,mwh,qhj,z06,z11,z35", compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -110,22 +114,6 @@ class Day24 : AbstractDay() {
         return getInvolvedFor(zBit) - getInvolvedFor(zBit - 1)
     }
 
-    private fun List<Gate>.filterInvolvedForXY(bit: Int): Set<Gate> {
-        val gates = this
-        fun getInvolvedFor(bit: Int): Set<Gate> {
-            val result = mutableSetOf<Gate>()
-            val nextInputs = mutableListOf(bit.toWire('x'), bit.toWire('y'))
-            while (nextInputs.isNotEmpty()) {
-                val input = nextInputs.removeFirst()
-                val gatesOfIn = gates.filter { it.i1 == input || it.i2 == input }
-                result.addAll(gatesOfIn)
-                nextInputs.addAll(gatesOfIn.map { it.out })
-            }
-            return result
-        }
-        return getInvolvedFor(bit) - getInvolvedFor(bit - 1)
-    }
-
     private fun List<Gate>.validate(n: Int): Set<Int> {
         fun initData(): MutableMap<String, Int> {
             val data = mutableMapOf<String, Int>()
@@ -139,15 +127,12 @@ class Day24 : AbstractDay() {
         val gates = this
         for (x in 0..1L) {
             for (y in 0..1L) {
-                // Create init_x and init_y
                 val data = initData()
                 data[n.toWire('x')] = x.toInt()
                 data[n.toWire('y')] = y.toInt()
 
-                // Call the run_wire2 function
                 val z = gates.run(data)
 
-                // Validate the result
                 val zString = toBinaryString(z).padStart(46, '0')
                 val bit = zString[45 - n]
                 val carry = zString[45 - n - 1]
@@ -155,10 +140,9 @@ class Day24 : AbstractDay() {
                 val invalidZBits = mutableSetOf<Int>()
                 val (expectedBit, expectedCarry) = when {
                     x == 0L && y == 0L -> '0' to '0'
-                    x == 0L && y == 1L -> '1' to '0'
-                    x == 1L && y == 0L -> '1' to '0'
-                    x == 1L && y == 1L -> '0' to '1'
-                    else -> error("Invalid case")
+                    x == 0L -> '1' to '0'
+                    y == 0L -> '1' to '0'
+                    else -> '0' to '1'
                 }
                 if (bit != expectedBit) invalidZBits.add(n)
                 if (carry != expectedCarry) invalidZBits.add(n + 1)
@@ -168,22 +152,50 @@ class Day24 : AbstractDay() {
         return emptySet()
     }
 
-    private fun compute2(input: List<String>, op: (Long, Long) -> Long): Long {
-        val data = getInitialInputs(input).toMutableMap()
+    private fun List<Gate>.find(
+        op: String? = null,
+        i1: String? = null,
+        i2: String? = null,
+    ): Gate? {
+        for (gate in this) {
+            if (op != null && op != gate.op) continue
+            if (i1 != null && i1 !in gate.i) continue
+            if (i2 != null && i2 !in gate.i) continue
+            return gate
+        }
+        return null
+    }
+
+    private fun compute2(input: List<String>): String {
         val gates = getGates(input)
-        val resultSize = gates.count { it.out.startsWith("z") }
 
-        val (xInputs, yInputs) = data.keys.partition { it.startsWith("x") }
-        val x = xInputs.toNumber(data)
-        val y = yInputs.toNumber(data)
-        val z = op(x, y)
-        val actual = compute1(input)
+        val brokenBits = (0..44)
+            .flatMap { i -> gates.validate(i) }
+            .distinct()
+            .sorted()
 
-        println("Desired: ${toBinaryString(z).padStart(resultSize, '0')}")
-        println("Actual : ${toBinaryString(actual).padStart(resultSize, '0')}")
-        println("Diff   : ${toBinaryString(z xor actual).padStart(resultSize, '0')}")
+        val swappedOutputs = mutableSetOf<String>()
+        for (brokenBit in brokenBits) {
+            val prevAND = gates.find(op = "AND", i1 = (brokenBit - 1).toWire('x'), i2 = (brokenBit - 1).toWire('y'))
+            val prevXOR = gates.find(op = "XOR", i1 = (brokenBit - 1).toWire('x'), i2 = (brokenBit - 1).toWire('y'))
+            val m2 = gates.find(op = "AND", i1 = prevXOR?.out)
+            val m1 = gates.find(op = "OR", i1 = m2?.out, i2 = prevAND?.out)
+            val nXOR = gates.find(op = "XOR", i1 = (brokenBit).toWire('x'), i2 = (brokenBit).toWire('y'))
+            val zN = gates.find(op = "XOR", i1 = nXOR?.out, i2 = m1?.out)
 
-        TODO()
+            val zWire = brokenBit.toWire('z')
+            if (zN == null) {
+                val zToFix = gates.single { it.out == zWire }
+                val set1 = zToFix.i
+                val set2 = setOfNotNull(nXOR?.out, m1?.out)
+                swappedOutputs.addAll((set1 - set2) + (set2 - set1))
+            } else if (zN.out != zWire) {
+                swappedOutputs.add(zWire)
+                swappedOutputs.add(zN.out)
+            }
+        }
+
+        return swappedOutputs.sorted().joinToString(",")
     }
 
     private fun List<String>.toNumber(data: MutableMap<String, Int>): Long {
@@ -219,9 +231,11 @@ class Day24 : AbstractDay() {
     private data class Gate(
         val i1: String,
         val i2: String,
-        private val op: String,
+        val op: String,
         val out: String,
     ) {
+        val i = setOf(i1, i2)
+
         fun perform(i1Val: Int, i2Val: Int): Pair<String, Int> {
             return out to getGateFunction(op).invoke(i1Val, i2Val)
         }
