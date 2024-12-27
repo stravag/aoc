@@ -5,6 +5,7 @@ import ch.ranil.aoc.common.Debug
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
+@org.junit.jupiter.api.Disabled
 class DayTemplate : AbstractDay() {
 
     @Test

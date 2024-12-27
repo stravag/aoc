@@ -21,27 +21,12 @@ class Day25 : AbstractDay() {
         assertEquals(3021, compute1(puzzleInput))
     }
 
-    @Test
-    fun part2Test() {
-        Debug.enable()
-        assertEquals(0, compute2(testInput))
-    }
-
-    @Test
-    fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
-    }
-
     private fun compute1(input: List<String>): Int {
         val (locks, keys) = parse(input)
 
         return locks
             .flatMap { lock -> keys.map { key -> lock.matches(key) } }
             .count { it }
-    }
-
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
     }
 
     private fun parse(input: List<String>): Pair<Set<Lock>, Set<Key>> {
@@ -79,5 +64,6 @@ class Day25 : AbstractDay() {
             return !hasOverlaps
         }
     }
+
     private data class Key(val data: Set<Point>)
 }
