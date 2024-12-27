@@ -4,46 +4,15 @@ import ch.ranil.aoc.common.*
 import ch.ranil.aoc.common.types.Direction
 import ch.ranil.aoc.common.types.Direction.*
 import ch.ranil.aoc.common.types.Point
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 /**
- * Could've not solved part 1 without some inspiration from 😇🙏
+ * Could've not solved this without some inspiration from these two good people 😇🙏
  * https://www.reddit.com/r/adventofcode/comments/1hj2odw/comment/m370d1h
+ * https://github.com/lukaslebo/AdventOfCode/blob/main/year2024/src/day21/Day21.kt
  */
 class Day21 : AbstractDay() {
-
-    @Test
-    fun part1Dummy() {
-        val starship = Starship()
-        // 👇 this seems fine ¯\_(ツ)_/¯
-        assertEquals("<A", starship.press("0", 0))
-        assertEquals("v<<A>^>A", starship.press("0", 1))
-        // 👇 this seems wrong ¯\_(ツ)_/¯
-        assertEquals("v<A<AA>^>AvAA^<A>A", starship.press("0", 2))
-    }
-
-    @Test
-    fun part1DummyLong() {
-        Debug.enable()
-        val starship = Starship()
-        //   <A^A>^^AvvvA 👈 this seems fine ¯\_(ツ)_/¯
-        assertEquals(
-            "<A^A^^>AvvvA",
-            starship.press("029A", 0)
-        )
-        //   v<<A>>^A<A>AvA<^AA>A<vAAA>^A 👈 this seems fine ¯\_(ツ)_/¯
-        assertEquals(
-            "v<<A>^>A<A>A<AA>vA^Av<AAA^>A",
-            starship.press("029A", 1)
-        )
-        //   <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A  👈 this seems fine ¯\_(ツ)_/¯
-        assertEquals(
-            "v<A<AA>^>AvAA^<A>Av<<A>^>AvA^Av<<A>^>AAvA<A^>A<A>Av<A<A>^>AAA<A>vA^A",
-            starship.press("029A", 2)
-        )
-    }
 
     @Test
     fun part1Test() {
@@ -57,57 +26,41 @@ class Day21 : AbstractDay() {
     }
 
     @Test
-    fun part2Dummy() {
-        val starship = Starship()
-        assertEquals("<A", starship.press("0", 25))
-    }
-
-    @Test
-    @Disabled
-    fun part2Test() {
-        Debug.enable()
-        assertEquals(0, compute2(testInput))
-    }
-
-    @Test
-    @Disabled
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(260586897262600, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
         val starship = Starship()
         return input.sumOf { sequence ->
-            val dPadMoves = starship.press(sequence, depth = 2)
-            val sequenceVal = sequence.dropLast(1).toLong()
-            println("$sequence: $dPadMoves")
-            println("${dPadMoves.length} * $sequenceVal")
-            sequenceVal * dPadMoves.length
+            starship.complexity(sequence, depth = 2)
         }
     }
 
     private fun compute2(input: List<String>): Long {
         val starship = Starship()
         return input.sumOf { sequence ->
-            val dPadMoves = starship.press(sequence, depth = 3)
-            val sequenceVal = sequence.dropLast(1).toLong()
-            println("$sequence: $dPadMoves")
-            println("${dPadMoves.length} * $sequenceVal")
-            sequenceVal * dPadMoves.length
+            starship.complexity(sequence, depth = 25)
         }
     }
 
     private class Starship {
+        val possibleMoves: MutableMap<Pair<Button, Button>, List<List<Button>>> = mutableMapOf()
 
-        val moveCache: MutableMap<CacheKey, List<List<Button>>> = mutableMapOf()
+        fun complexity(sequence: String, depth: Int): Long {
+            val dPadMovesLength = bestLength(sequence, depth)
+            val sequenceVal = sequence.dropLast(1).toLong()
+            println("$dPadMovesLength * $sequenceVal")
+            return dPadMovesLength * sequenceVal
+        }
 
-        fun press(sequence: String, depth: Int): String {
-            val inputsForNumPad = "A$sequence"
+        private fun bestLength(code: String, depth: Int): Long {
+            val directionsForNumPad = "A$code"
                 .map { Button(it) }
                 .windowed(2)
                 .fold(listOf<List<Button>>()) { list, (src, dst) ->
-                    val cacheKey = CacheKey(src, dst)
-                    val nextMoves = moveCache.getValue(cacheKey)
+                    val cacheKey = src to dst
+                    val nextMoves = possibleMoves.getValue(cacheKey)
                     if (list.isEmpty()) {
                         nextMoves
                     } else {
@@ -115,36 +68,53 @@ class Day21 : AbstractDay() {
                     }
                 }
 
-            Debug.debug { println("Possible inputs for numPad: $inputsForNumPad") }
-            var inputsForDPad = inputsForNumPad
-            repeat(depth) {
-                inputsForDPad = getDPadSequenceForDPad(inputsForDPad)
+            Debug.debug {
+                println("Possible inputs for numPad: $code")
+                directionsForNumPad.forEach { buttons -> println(buttons.joinToString("") { "${it.c}" }) }
             }
 
-            return inputsForDPad.first().joinToString("") { it.c.toString() }
+
+            val bestLength = directionsForNumPad.minOf { directions ->
+                bestDPadSequenceLengthForDPad(directions, depth)
+            }
+
+            return bestLength
         }
 
-        private fun getDPadSequenceForDPad(
-            possibleDPadInputs: List<List<Button>>,
-        ): List<List<Button>> {
-            val possibleInputs = possibleDPadInputs
-                .flatMap { inputs -> (listOf(Button('A')) + inputs).getControls() }
-            val bestSolutionCount = possibleInputs.minOf { it.count() }
-            val bestSolutions = possibleInputs.filter { it.count() == bestSolutionCount }
-            return bestSolutions
+        private fun bestDPadSequenceLengthForDPad(
+            dPadInputs: List<Button>,
+            depth: Int,
+            cache: MutableMap<CacheKey, Long> = mutableMapOf(),
+        ): Long {
+            var total = 0L
+            var current = Button('A')
+            for (dPadInput in dPadInputs) {
+                total += bestDPadSequenceLengthForDPad(current, dPadInput, depth, cache)
+                current = dPadInput
+            }
+            return total
         }
 
-        private fun List<Button>.getControls(): List<List<Button>> = this
-            .windowed(2)
-            .fold(mutableListOf(mutableListOf())) { list, (src, dst) ->
-                val cacheKey = CacheKey(src, dst)
-                val nextMoves = moveCache.getValue(cacheKey)
-                if (list.isEmpty()) {
-                    nextMoves
-                } else {
-                    list.flatMap { path -> nextMoves.map { path + it } }
+        private fun bestDPadSequenceLengthForDPad(
+            src: Button,
+            dst: Button,
+            depth: Int,
+            cache: MutableMap<CacheKey, Long>,
+        ): Long {
+            if (depth == 1) {
+                return possibleMoves.getValue(src to dst).minOf { it.size.toLong() }
+            }
+            val key = CacheKey(
+                src = src,
+                dst = dst,
+                depth = depth,
+            )
+            return cache.getOrPut(key) {
+                possibleMoves.getValue(src to dst).minOf { directions ->
+                    bestDPadSequenceLengthForDPad(directions, depth - 1, cache)
                 }
             }
+        }
 
         init {
             val dPad = " ^A\n<v>".lines()
@@ -159,12 +129,12 @@ class Day21 : AbstractDay() {
 
             dPadPoints.forEach { dPadPoint ->
                 val shortestPaths = findShortestPaths(dPadPoint, dPad, dPadPoints)
-                moveCache.putAll(shortestPaths)
+                possibleMoves.putAll(shortestPaths)
             }
 
             nPadPoints.forEach { nPadPoint ->
                 val shortestPaths = findShortestPaths(nPadPoint, nPad, nPadPoints)
-                moveCache.putAll(shortestPaths)
+                possibleMoves.putAll(shortestPaths)
             }
         }
 
@@ -172,7 +142,7 @@ class Day21 : AbstractDay() {
             from: Point,
             pad: List<String>,
             padPoints: Set<Point>,
-        ): Map<CacheKey, List<List<Button>>> {
+        ): Map<Pair<Button, Button>, List<List<Button>>> {
             val seen = mutableMapOf<Point, MutableSet<List<Direction>>>()
             val queue = ArrayDeque<Pair<Point, List<Direction>>>()
             queue.add(from to emptyList())
@@ -194,10 +164,7 @@ class Day21 : AbstractDay() {
             }
             return seen
                 .mapKeys { (point, _) ->
-                    CacheKey(
-                        robotState = listOf(Button(pad.charFor(from))),
-                        targetButton = Button(pad.charFor(point))
-                    )
+                    Button(pad.charFor(from)) to Button(pad.charFor(point))
                 }
                 .mapValues { (_, moves) ->
                     moves.map { directions -> directions.map { Button(it.indicator) } + Button('A') }
@@ -209,10 +176,9 @@ class Day21 : AbstractDay() {
         }
 
         data class CacheKey(
-            val robotState: List<Button>,
-            val targetButton: Button
-        ) {
-            constructor(robotState: Button, targetButton: Button) : this(listOf(robotState), targetButton)
-        }
+            val src: Button,
+            val dst: Button,
+            val depth: Int,
+        )
     }
 }
