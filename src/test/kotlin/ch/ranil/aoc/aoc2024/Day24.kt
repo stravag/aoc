@@ -52,9 +52,21 @@ class Day24 : AbstractDay() {
             .sorted()
         for (i in 0..44) {
             val color = if (i in invalidBits) PrintColor.RED else PrintColor.GREEN
-            val gatesInvolved = gates.filterInvolvedForZ(i)
+            val gatesInvolved = gates.filterDistinctInvolvedForZ(i)
             println("Gates for $i (${gatesInvolved.count()})")
             gatesInvolved.forEach { printlnColor(it, color) }
+        }
+    }
+
+    @Test
+    fun part2AnalyzeGates() {
+        val gates = getGates(puzzleInput)
+
+        listOf(0, 1, 2, 3).forEach { i ->
+            val gatesInvolved = gates.filterInvolvedFor(i)
+            println("Gates for $i (${gatesInvolved.count()})")
+            gatesInvolved.forEach { println(it) }
+            println()
         }
     }
 
@@ -92,26 +104,27 @@ class Day24 : AbstractDay() {
             .toNumber(data)
     }
 
-    private fun List<Gate>.filterInvolvedForZ(zBit: Int): Set<Gate> {
-        val gates = this
-        fun getInvolvedFor(zBit: Int): Set<Gate> {
-            val result = mutableSetOf<Gate>()
-            val nextOutputs = mutableListOf(zBit.toWire('z'))
-            while (nextOutputs.isNotEmpty()) {
-                val out = nextOutputs.removeFirst()
-                val gateOfOut = gates.singleOrNull { it.out == out } ?: continue
+    private fun List<Gate>.filterDistinctInvolvedForZ(zBit: Int): Set<Gate> {
+        return filterInvolvedFor(zBit) - filterInvolvedFor(zBit - 1)
+    }
 
-                result.add(gateOfOut)
-                if (gateOfOut.i1.first() !in listOf('x', 'y')) {
-                    nextOutputs.add(gateOfOut.i1)
-                }
-                if (gateOfOut.i2.first() !in listOf('x', 'y')) {
-                    nextOutputs.add(gateOfOut.i2)
-                }
+    private fun List<Gate>.filterInvolvedFor(zBit: Int): Set<Gate> {
+        val gates = this
+        val result = mutableSetOf<Gate>()
+        val nextOutputs = mutableListOf(zBit.toWire('z'))
+        while (nextOutputs.isNotEmpty()) {
+            val out = nextOutputs.removeFirst()
+            val gateOfOut = gates.singleOrNull { it.out == out } ?: continue
+
+            result.add(gateOfOut)
+            if (gateOfOut.i1.first() !in listOf('x', 'y')) {
+                nextOutputs.add(gateOfOut.i1)
             }
-            return result
+            if (gateOfOut.i2.first() !in listOf('x', 'y')) {
+                nextOutputs.add(gateOfOut.i2)
+            }
         }
-        return getInvolvedFor(zBit) - getInvolvedFor(zBit - 1)
+        return result
     }
 
     private fun List<Gate>.validate(n: Int): Set<Int> {
