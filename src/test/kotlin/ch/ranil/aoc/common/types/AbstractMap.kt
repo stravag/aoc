@@ -22,7 +22,7 @@ abstract class AbstractMap(
     }
 
     fun charFor(point: Point): Char {
-        return input.charForOrNull(point) ?: error("Point not in map!")
+        return input.charForOrNull(point) ?: error("ch.ranil.aoc.aoc2024.Point not in map!")
     }
 
     fun charForOrNull(point: Point): Char? {

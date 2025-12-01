@@ -9,7 +9,7 @@ import java.lang.Long.toBinaryString
 import kotlin.test.assertEquals
 
 /**
- * Was only able to solve this by taking loads of inspiration by this good man 😇🙏🙈:
+ * Was only able to ch.ranil.aoc.aoc2024.solve this by taking loads of inspiration by this good man 😇🙏🙈:
  * https://www.youtube.com/watch?v=pH5MRTC4MLY
  */
 class Day24 : AbstractDay() {
