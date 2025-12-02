@@ -27,16 +27,18 @@ class Day02 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        return input
-            .parsePairs()
-            .flatMap { (l, r) -> (l..r).filter { it.isInvalid1() } }
-            .sum()
+        return compute(input, ::isInvalid1)
     }
 
     private fun compute2(input: List<String>): Long {
+        return compute(input, ::isInvalid2)
+    }
+
+    private fun compute(input: List<String>, filter: (Long) -> Boolean): Long {
         return input
             .parsePairs()
-            .flatMap { (l, r) -> (l..r).filter { it.isInvalid2() } }
+            .flatMap { (l, r) -> (l..r) }
+            .filter(filter)
             .sum()
     }
 
@@ -47,8 +49,8 @@ class Day02 : AbstractDay() {
             .map { (a, b) -> a.toLong() to b.toLong() }
     }
 
-    private fun Long.isInvalid1(): Boolean {
-        val s = this.toString()
+    private fun isInvalid1(number: Long): Boolean {
+        val s = number.toString()
         val len = s.length
         if (len % 2 != 0) return false
 
@@ -57,8 +59,8 @@ class Day02 : AbstractDay() {
         return l == r
     }
 
-    private fun Long.isInvalid2(): Boolean {
-        val s = this.toString()
+    private fun isInvalid2(number: Long): Boolean {
+        val s = number.toString()
 
         for (len in 1..(s.length / 2)) {
             val chunks = s.chunked(len)
