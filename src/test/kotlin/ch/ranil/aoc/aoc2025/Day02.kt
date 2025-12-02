@@ -51,11 +51,8 @@ class Day02 : AbstractDay() {
 
     private fun isInvalid1(number: Long): Boolean {
         val s = number.toString()
-        val len = s.length
-        if (len % 2 != 0) return false
-
-        val l = s.substring(0..<(len / 2))
-        val r = s.substring(len / 2)
+        if (s.length % 2 != 0) return false
+        val (l, r) = s.chunked(s.length / 2)
         return l == r
     }
 
