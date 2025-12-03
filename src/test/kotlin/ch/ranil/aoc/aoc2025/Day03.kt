@@ -30,32 +30,18 @@ class Day03 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        return input.sumOf { it.maxNum1() }
+        return input.sumOf { it.maxNum(2) }
     }
-
-    private fun String.maxNum1(): Long {
-        var maxNum = 0
-        for (l in 0 until length - 1) {
-            for (r in l + 1 until length) {
-                maxNum = maxOf(maxNum, numFor(l, r))
-            }
-        }
-        Debug.debug { println("$this >> $maxNum") }
-        return maxNum.toLong()
-    }
-
-    private fun String.numFor(idxL: Int, idxR: Int) = get(idxL).digitToInt() * 10 + get(idxR).digitToInt()
 
     private fun compute2(input: List<String>): Long {
-        return input.sumOf { it.maxNum2(12) }
+        return input.sumOf { it.maxNum(12) }
     }
 
-    private fun String.maxNum2(n: Int): Long {
+    private fun String.maxNum(n: Int): Long {
         var leftPointer = 0
         var numString = ""
         (0 until n).forEach { i ->
-            val candidates = substring(leftPointer, length - n + i + 1)
-            val char = candidates.toList().max()
+            val char = substring(leftPointer, length - n + i + 1).max()
             numString += char
             leftPointer = indexOf(char, leftPointer) + 1
         }
