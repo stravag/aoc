@@ -3,8 +3,6 @@ package ch.ranil.aoc.aoc2025
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
 import org.junit.jupiter.api.Test
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.test.assertEquals
 
 class Day06 : AbstractDay() {
@@ -23,12 +21,12 @@ class Day06 : AbstractDay() {
     @Test
     fun part2() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(3263827, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(8342588849093, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -57,6 +55,31 @@ class Day06 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+        val numbers = input
+            .dropLast(1)
+            .map { row -> row.map { it } }
+
+        var result = 0L
+        val currentNumbers = mutableListOf<Long>()
+        for (rowIdx in (-1 until numbers.first().size).reversed()) {
+            val number = numbers.map { it.getOrNull(rowIdx) }.joinToString("").trim().toLongOrNull()
+            if (number == null) {
+                val op = input.last()[rowIdx + 1]
+                val r = when (op) {
+                    '*' -> currentNumbers.reduce(Long::times)
+                    '+' -> currentNumbers.reduce(Long::plus)
+                    else -> error("Unknown operand: $op")
+                }
+                Debug.debug {
+                    println("${currentNumbers.joinToString(" $op ")} = $r")
+                }
+                result += r
+                currentNumbers.clear()
+            } else {
+                currentNumbers.add(number)
+            }
+        }
+
+        return result
     }
 }
