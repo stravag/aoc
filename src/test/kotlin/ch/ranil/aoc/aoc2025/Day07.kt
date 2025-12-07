@@ -23,12 +23,12 @@ class Day07 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(40, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(73007003089792, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Int {
@@ -37,7 +37,8 @@ class Day07 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+        val splitterMap = SplitterMap(input)
+        return splitterMap.countTimelines()
     }
 
     private class SplitterMap(input: List<String>) : AbstractMap(input) {
@@ -49,21 +50,46 @@ class Day07 : AbstractDay() {
             while (beams.isNotEmpty()) {
                 val beamsOfNextStep = mutableSetOf<Point>()
                 beams.forEach { beam ->
-                    val next = beam.south()
-                    when (this.charForOrNull(next)) {
-                        '.' -> beamsOfNextStep.add(next)
-                        '^' -> {
-                            splitCount++
-                            beamsOfNextStep.add(next.east())
-                            beamsOfNextStep.add(next.west())
-                        }
-
-                        else -> Unit
-                    }
+                    val nextBeams = nextBeams(beam)
+                    if (nextBeams.size == 2) splitCount++
+                    beamsOfNextStep.addAll(nextBeams)
                 }
                 beams = beamsOfNextStep
             }
             return splitCount
+        }
+
+        fun countTimelines(): Long {
+            val memo = mutableMapOf<Point, Long>()
+            val active = mutableSetOf<Point>()
+
+            fun dfs(point: Point): Long {
+                if (point in memo) return memo.getValue(point)
+
+                val sum = nextBeams(point)
+                    .ifEmpty { return 1L }
+                    .sumOf { n -> dfs(n) }
+
+                active.remove(point)
+                memo[point] = sum
+                return sum
+            }
+
+            return dfs(start)
+        }
+
+        private fun nextBeams(p: Point): List<Point> {
+            return when (this.charForOrNull(p.south())) {
+                '.' -> listOf(p.south())
+                '^' -> {
+                    listOf(
+                        p.southEast(),
+                        p.southWest(),
+                    )
+                }
+
+                else -> emptyList()
+            }
         }
     }
 }
