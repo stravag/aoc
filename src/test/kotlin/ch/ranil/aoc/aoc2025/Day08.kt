@@ -23,12 +23,12 @@ class Day08 : AbstractDay() {
     @Test
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(25272, compute2(testInput))
     }
 
     @Test
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(2497445, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>, numberOfConnections: Int): Long {
@@ -71,7 +71,20 @@ class Day08 : AbstractDay() {
     }
 
     private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
+        val junctionBoxes = input.map(::toJunctionBox)
+        val boxPairs = junctionBoxes.uniquePairs()
+
+        val circuits = junctionBoxes.map { mutableSetOf(it) }.toMutableSet()
+        while (true) {
+            val (b1, b2) = boxPairs.poll()
+            val b1Circuit = circuits.single { b1 in it }
+            val b2Circuit = circuits.single { b2 in it }
+            if (b1Circuit != b2Circuit) {
+                circuits.removeIf { b2 in it }
+                b1Circuit.addAll(b2Circuit)
+            }
+            if (circuits.size == 1) return b1.x.toLong() * b2.x.toLong()
+        }
     }
 
     private data class JunctionBox(val x: Int, val y: Int, val z: Int) {
