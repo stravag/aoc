@@ -35,8 +35,9 @@ class Day08 : AbstractDay() {
         val junctionBoxes = input.map(::toJunctionBox)
         val boxPairs = junctionBoxes.uniquePairs()
 
-        val circuits = junctionBoxes.map { mutableSetOf(it) }.toMutableSet()
-        repeat (numberOfConnections) {
+        val circuits = PriorityQueue<MutableSet<JunctionBox>>(compareByDescending { it.size })
+        circuits.addAll(junctionBoxes.map { mutableSetOf(it) })
+        repeat(numberOfConnections) {
             val (b1, b2) = boxPairs.poll()
             val b1Circuit = circuits.single { b1 in it }
             val b2Circuit = circuits.single { b2 in it }
@@ -47,7 +48,6 @@ class Day08 : AbstractDay() {
         }
 
         return circuits
-            .sortedByDescending { it.size }
             .take(3)
             .map { it.size.toLong() }
             .reduce(Long::times)
@@ -59,7 +59,7 @@ class Day08 : AbstractDay() {
     }
 
     private fun List<JunctionBox>.uniquePairs(): PriorityQueue<BoxPair> {
-        val result = PriorityQueue<BoxPair>()
+        val result = PriorityQueue<BoxPair>(compareBy { it.distance() })
         for (i in indices) {
             for (j in i + 1 until size) {
                 result.add(
@@ -94,8 +94,7 @@ class Day08 : AbstractDay() {
     private data class BoxPair(
         val b1: JunctionBox,
         val b2: JunctionBox,
-    ) : Comparable<BoxPair> {
-
+    ) {
         fun distance(
         ): Double {
             val dx = (b2.x - b1.x).toDouble()
@@ -103,10 +102,6 @@ class Day08 : AbstractDay() {
             val dz = (b2.z - b1.z).toDouble()
 
             return sqrt(dx * dx + dy * dy + dz * dz)
-        }
-
-        override fun compareTo(other: BoxPair): Int {
-            return distance().compareTo(other.distance())
         }
     }
 }
