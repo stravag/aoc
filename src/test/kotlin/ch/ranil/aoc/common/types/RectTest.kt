@@ -36,13 +36,26 @@ class RectTest {
 
     @Test
     fun shrink() {
-        assertEquals(Rect(Point(1, 1), Point(1, 1)), Rect(Point(0, 0), Point(2, 2)).shrink())
+        val rect = Rect(Point(0, 0), Point(2, 2))
+        assertTrue(rect.canShrink())
+        assertEquals(Rect(Point(1, 1), Point(1, 1)), rect.shrink())
     }
 
     @Test
     fun cannotShrinkSmallRects() {
-        assertThrows<IllegalStateException> { Rect(Point(0, 0), Point(0, 0)).shrink() }
-        assertThrows<IllegalStateException> { Rect(Point(0, 0), Point(1, 1)).shrink() }
+        fun test(rect: Rect) {
+            assertThrows<IllegalStateException> { rect.shrink() }
+            assertFalse(rect.canShrink())
+        }
+
+        val rect1x1 = Rect(Point(0, 0), Point(0, 0))
+        val rect2x2 = Rect(Point(0, 0), Point(1, 1))
+        val rect2x1 = Rect(Point(0, 0), Point(0, 1))
+        val rect1x2 = Rect(Point(0, 0), Point(1, 0))
+        test(rect1x1)
+        test(rect2x2)
+        test(rect2x1)
+        test(rect1x2)
     }
 
     @Test

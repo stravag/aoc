@@ -1,7 +1,6 @@
 package ch.ranil.aoc.common.types
 
 import kotlin.math.absoluteValue
-import kotlin.ranges.rangeTo
 
 data class Rect(
     val p1: Point,
@@ -37,7 +36,9 @@ data class Rect(
     }
 
     fun shrink(): Rect {
-        check(width > 2 && height > 2) { "Cannot shrink rect with width or height <= 2" }
+        check(canShrink()) { "Cannot shrink rect with width or height <= 2" }
         return Rect(topLeft.southEast(), bottomRight.northWest())
     }
+
+    fun canShrink(): Boolean = width > 2 && height > 2
 }
