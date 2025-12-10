@@ -2,6 +2,8 @@ package ch.ranil.aoc.aoc2025
 
 import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
+import ch.ranil.aoc.common.PrintColor
+import ch.ranil.aoc.common.printlnColor
 import org.junit.jupiter.api.Test
 import java.util.LinkedList
 import java.util.Queue
@@ -12,12 +14,12 @@ class Day10 : AbstractDay() {
     @Test
     fun part1Test() {
         Debug.enable()
-        assertEquals(0, compute1(testInput))
+        assertEquals(7, compute1(testInput))
     }
 
     @Test
     fun part1Puzzle() {
-        assertEquals(0, compute1(puzzleInput))
+        assertEquals(477, compute1(puzzleInput))
     }
 
     @Test
@@ -31,37 +33,46 @@ class Day10 : AbstractDay() {
         assertEquals(0, compute2(puzzleInput))
     }
 
-    private fun compute1(input: List<String>): Int {
+    private fun compute1(input: List<String>): Long {
         return input.sumOf { row ->
             val parts = row.split(" ")
             val lights = Lights.parse(parts[0])
             val buttons = parts.drop(1).dropLast(1).map { Button.parse(it) }
-            bfs(lights, buttons)
+            val presses = bfs(lights, buttons)
+            Debug.debug { printlnColor("Solution found after: $presses presses", PrintColor.BLUE) }
+            presses
         }
     }
 
-    private fun bfs(startLights: Lights, buttons: List<Button>): Int {
+    private fun bfs(desiredLights: Lights, buttons: List<Button>): Long {
         val visited = mutableSetOf<Lights>()
-        val queue: Queue<Lights> = LinkedList()
-        val result = mutableMapOf<Lights, Int>()
-
+        val queue: Queue<Pair<Lights, Long>> = LinkedList()
+        val startLights = Lights(desiredLights.lights.map { false })
         visited.add(startLights)
-        queue.offer(startLights)
-
+        queue.offer(startLights to 0L)
+        Debug.debug { printlnColor("Desired Lights: $desiredLights", PrintColor.YELLOW) }
         while (queue.isNotEmpty()) {
-            val currentLights = queue.poll()
-            result.computeIfAbsent(currentLights) { 0 }
-            result.computeIfPresent(currentLights) { _, v -> v + 1 }
-            if (currentLights.desiredState == currentLights.lights) return result.getValue(currentLights)
-            for (nextLightState in buttons.map { it.press(currentLights) }) {
+            val (currentLights, presses) = queue.poll()
+            Debug.debug { println("Current Lights: $currentLights ($presses)") }
+            if (currentLights == desiredLights) {
+                Debug.debug {
+                    printlnColor(
+                        "Current Lights: $currentLights == $desiredLights ($presses)",
+                        PrintColor.GREEN
+                    )
+                }
+                return presses
+            }
+            for (button in buttons) {
+                val nextLightState = button.press(currentLights)
                 if (nextLightState !in visited) {
                     visited.add(nextLightState)
-                    queue.offer(nextLightState)
+                    queue.offer(nextLightState to presses + 1)
                 }
             }
         }
 
-        return 0
+        return 0L
     }
 
     private fun compute2(input: List<String>): Long {
@@ -69,6 +80,7 @@ class Day10 : AbstractDay() {
     }
 
     private data class Button(
+        val name: String,
         val togglesLights: Set<Int>,
     ) {
         fun press(lights: Lights): Lights {
@@ -80,7 +92,7 @@ class Day10 : AbstractDay() {
                         else -> l
                     }
                 }
-            return Lights(lights.desiredState, newLights)
+            return Lights(newLights)
         }
 
 
@@ -91,18 +103,22 @@ class Day10 : AbstractDay() {
                     .split(",")
                     .map { it.toInt() }
                     .toSet()
-                return Button(togglesLights)
+                return Button(input, togglesLights)
             }
         }
     }
 
-    private class Lights(
-        val desiredState: List<Boolean>,
-        val lights: List<Boolean> = List(desiredState.size) { false },
+    private data class Lights(
+        val lights: List<Boolean>,
     ) {
+        override fun toString(): String =
+            lights
+                .joinToString("") { if (it) "#" else "." }
+                .let { return "[$it]" }
+
         companion object {
             fun parse(input: String): Lights {
-                val desiredState = input
+                val lights = input
                     .drop(1).dropLast(1)
                     .map { c ->
                         when (c) {
@@ -111,7 +127,7 @@ class Day10 : AbstractDay() {
                             else -> error("unexpected char $c")
                         }
                     }
-                return Lights(desiredState)
+                return Lights(lights)
             }
         }
     }
