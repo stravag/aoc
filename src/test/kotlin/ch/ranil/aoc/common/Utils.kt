@@ -97,7 +97,31 @@ fun lcm(number1: Long, number2: Long): Long {
     return lcm
 }
 
+fun <T> List<T>.uniquePairs(): List<Pair<T, T>> {
+    val result = mutableListOf<Pair<T, T>>()
+    for (i in indices) {
+        for (j in i + 1 until size) {
+            result.add(
+                this[i] to this[j]
+            )
+        }
+    }
+    return result
+}
+
 class UtilsTests {
+    @Test
+    fun uniquePairs() {
+        assertEquals(
+            setOf(
+                1 to 2,
+                1 to 3,
+                2 to 3
+            ),
+            listOf(1, 2, 3).uniquePairs().toSet()
+        )
+    }
+
     @Test
     fun rangeOverlap() {
         assertEquals(LongRange.EMPTY, (0L..1L).rangeOverlap(2L..3L))
