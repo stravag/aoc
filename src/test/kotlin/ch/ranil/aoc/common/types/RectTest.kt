@@ -81,4 +81,12 @@ class RectTest {
         val trbl = Rect(Point(0, 2), Point(2, 0))
         assertEquals(1, setOf(tlbr, brtl, bltr, trbl).size)
     }
+
+    @Test
+    fun edgePoints() {
+        val rect1x1 = Rect(Point(0, 0), Point(0, 0))
+        val rect2x2 = Rect(Point(0, 0), Point(1, 1))
+        assertEquals(setOf(Point(0, 0)), rect1x1.edgePoints)
+        assertEquals(rect2x2.corners, rect2x2.edgePoints)
+    }
 }

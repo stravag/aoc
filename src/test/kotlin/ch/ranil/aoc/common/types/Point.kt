@@ -1,5 +1,6 @@
 package ch.ranil.aoc.common.types
 
+import kotlin.collections.map
 import kotlin.math.abs
 
 data class Point(val row: Int, val col: Int) : Comparable<Point> {
@@ -63,6 +64,18 @@ data class Point(val row: Int, val col: Int) : Comparable<Point> {
 
     fun isAdjacentTo(other: Point): Boolean {
         return (abs(other.col - col) <= 1) and (abs(other.row - row) <= 1)
+    }
+
+    fun allPointsTo(other: Point): List<Point> {
+        val minCol = minOf(this.col, other.col)
+        val maxCol = maxOf(this.col, other.col)
+        val minRow = minOf(this.row, other.row)
+        val maxRow = maxOf(this.row, other.row)
+        return when {
+            row == other.row -> (minCol..maxCol).map { Point(row, it) }
+            col == other.col -> (minRow..maxRow).map { Point(it, col) }
+            else -> error("Points $this, $other not vertical or horizontal")
+        }
     }
 
     companion object {

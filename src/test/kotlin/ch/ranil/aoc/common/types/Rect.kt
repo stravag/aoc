@@ -41,4 +41,10 @@ data class Rect(
     }
 
     fun canShrink(): Boolean = width > 2 && height > 2
+
+    val edgePoints: Set<Point>
+        get() = listOf(topLeft, topRight, bottomRight, bottomLeft, topLeft)
+            .zipWithNext()
+            .flatMap { (a, b) -> a.allPointsTo(b) }
+            .toSet()
 }
