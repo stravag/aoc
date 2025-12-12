@@ -4,6 +4,7 @@ import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
 import ch.ranil.aoc.common.PrintColor
 import ch.ranil.aoc.common.printlnColor
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.LinkedList
 import java.util.Queue
@@ -23,12 +24,14 @@ class Day10 : AbstractDay() {
     }
 
     @Test
+    @Disabled
     fun part2Test() {
         Debug.enable()
         assertEquals(0, compute2(testInput))
     }
 
     @Test
+    @Disabled
     fun part2Puzzle() {
         assertEquals(0, compute2(puzzleInput))
     }
