@@ -24,10 +24,9 @@ class Day11 : AbstractDay() {
     }
 
     @Test
-    @Disabled
     fun part2Test() {
         Debug.enable()
-        assertEquals(0, compute2(testInput))
+        assertEquals(2, compute2(test2Input))
     }
 
     @Test
@@ -44,6 +43,16 @@ class Day11 : AbstractDay() {
             fromNode to toNodes
         }
         return findPaths(connections)
+    }
+
+    private fun compute2(input: List<String>): Long {
+        val connections = input.associate { row ->
+            val elements = row.split(" ")
+            val fromNode = elements[0].dropLast(1)
+            val toNodes = elements.drop(1).toSet()
+            fromNode to toNodes
+        }
+        return findPathsViaFftDac(connections)
     }
 
     private fun findPaths(connections: Map<String, Set<String>>): Long {
@@ -63,7 +72,7 @@ class Day11 : AbstractDay() {
                 }
                 paths++
             } else {
-                for (nextNode in connections[currentNode].orEmpty()) {
+                for (nextNode in connections.getValue(currentNode)) {
                     queue.offer(nextNode)
                 }
             }
@@ -72,60 +81,42 @@ class Day11 : AbstractDay() {
         return paths
     }
 
-    private fun compute2(input: List<String>): Long {
-        return input.size.toLong()
-    }
-
-    private data class Button(
-        val name: String,
-        val togglesLights: Set<Int>,
-    ) {
-        fun press(lights: Lights): Lights {
-            val newLights = lights
-                .lights
-                .mapIndexed { i, l ->
-                    when {
-                        i in togglesLights -> !l
-                        else -> l
+    private fun findPathsViaFftDac(connections: Map<String, Set<String>>): Long {
+        val start = "svr"
+        val end = "out"
+        val startKey = Key(start, passedFft = false, passedDac = false)
+        val queue: Queue<Key> = LinkedList<Key>().apply { offer(startKey) }
+        var paths = 0L
+        while (queue.isNotEmpty()) {
+            val (currentNode, passedFft, passedDac) = queue.poll()
+            Debug.debug {
+                println("Currently at: $currentNode")
+            }
+            if (currentNode == end) {
+                if (passedFft && passedDac) {
+                    Debug.debug {
+                        printlnColor("Found a Path with fft & dac", PrintColor.GREEN)
+                    }
+                    paths++
+                } else {
+                    Debug.debug {
+                        printlnColor("Found a Path", PrintColor.RED)
                     }
                 }
-            return Lights(newLights)
-        }
-
-
-        companion object {
-            fun parse(input: String): Button {
-                val togglesLights = input
-                    .drop(1).dropLast(1)
-                    .split(",")
-                    .map { it.toInt() }
-                    .toSet()
-                return Button(input, togglesLights)
+            } else {
+                for (nextNode in connections.getValue(currentNode)) {
+                    val nextKey = Key(nextNode, passedFft || nextNode == "fft", passedDac || nextNode == "dac")
+                    queue.offer(nextKey)
+                }
             }
         }
+
+        return paths
     }
 
-    private data class Lights(
-        val lights: List<Boolean>,
-    ) {
-        override fun toString(): String =
-            lights
-                .joinToString("") { if (it) "#" else "." }
-                .let { return "[$it]" }
-
-        companion object {
-            fun parse(input: String): Lights {
-                val lights = input
-                    .drop(1).dropLast(1)
-                    .map { c ->
-                        when (c) {
-                            '.' -> false
-                            '#' -> true
-                            else -> error("unexpected char $c")
-                        }
-                    }
-                return Lights(lights)
-            }
-        }
-    }
+    data class Key(
+        val node: String,
+        val passedFft: Boolean,
+        val passedDac: Boolean
+    )
 }
