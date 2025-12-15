@@ -4,10 +4,8 @@ import ch.ranil.aoc.common.AbstractDay
 import ch.ranil.aoc.common.Debug
 import ch.ranil.aoc.common.PrintColor
 import ch.ranil.aoc.common.printlnColor
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.util.LinkedList
-import java.util.Queue
+import java.util.*
 import kotlin.test.assertEquals
 
 class Day11 : AbstractDay() {
@@ -30,9 +28,8 @@ class Day11 : AbstractDay() {
     }
 
     @Test
-    @Disabled
     fun part2Puzzle() {
-        assertEquals(0, compute2(puzzleInput))
+        assertEquals(549705036748518, compute2(puzzleInput))
     }
 
     private fun compute1(input: List<String>): Long {
@@ -80,41 +77,29 @@ class Day11 : AbstractDay() {
     }
 
     private fun findPathsViaFftDac(connections: Map<String, Set<String>>): Long {
-        val start = "svr"
-        val end = "out"
-        val startKey = Key(start, passedFft = false, passedDac = false)
-        val queue: Queue<Key> = LinkedList<Key>().apply { offer(startKey) }
-        var paths = 0L
-        while (queue.isNotEmpty()) {
-            val (currentNode, passedFft, passedDac) = queue.poll()
-            Debug.debug {
-                println("Currently at: $currentNode")
+        val cache = mutableMapOf<Key, Long>()
+        fun dfs(key: Key): Long {
+            if (key.node == "out") {
+                return if (key.passedFft && key.passedDac) 1 else 0
             }
-            if (currentNode == end) {
-                if (passedFft && passedDac) {
-                    Debug.debug {
-                        printlnColor("Found a Path with fft & dac", PrintColor.GREEN)
-                    }
-                    paths++
-                } else {
-                    Debug.debug {
-                        printlnColor("Found a Path", PrintColor.RED)
-                    }
+            return connections
+                .getValue(key.node)
+                .sumOf { nextNode ->
+                    val nextKey = key.next(nextNode)
+                    cache.getOrPut(nextKey) { dfs(nextKey) }
                 }
-            } else {
-                for (nextNode in connections.getValue(currentNode)) {
-                    val nextKey = Key(nextNode, passedFft || nextNode == "fft", passedDac || nextNode == "dac")
-                    queue.offer(nextKey)
-                }
-            }
         }
 
-        return paths
+        val startKey = Key("svr", passedFft = false, passedDac = false)
+        return dfs(startKey)
     }
 
     data class Key(
         val node: String,
         val passedFft: Boolean,
         val passedDac: Boolean
-    )
+    ) {
+        fun next(nextNode: String): Key =
+            Key(nextNode, passedFft || nextNode == "fft", passedDac || nextNode == "dac")
+    }
 }
