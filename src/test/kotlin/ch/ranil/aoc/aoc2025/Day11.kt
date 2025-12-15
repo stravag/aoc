@@ -36,24 +36,22 @@ class Day11 : AbstractDay() {
     }
 
     private fun compute1(input: List<String>): Long {
-        val connections = input.associate { row ->
-            val elements = row.split(" ")
-            val fromNode = elements[0].dropLast(1)
-            val toNodes = elements.drop(1).toSet()
-            fromNode to toNodes
-        }
+        val connections = getConnections(input)
         return findPaths(connections)
     }
 
     private fun compute2(input: List<String>): Long {
-        val connections = input.associate { row ->
+        val connections = getConnections(input)
+        return findPathsViaFftDac(connections)
+    }
+
+    private fun getConnections(input: List<String>): Map<String, Set<String>> =
+        input.associate { row ->
             val elements = row.split(" ")
             val fromNode = elements[0].dropLast(1)
             val toNodes = elements.drop(1).toSet()
             fromNode to toNodes
         }
-        return findPathsViaFftDac(connections)
-    }
 
     private fun findPaths(connections: Map<String, Set<String>>): Long {
         val start = "you"
